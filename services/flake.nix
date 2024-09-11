@@ -19,7 +19,7 @@
         # `nix build` and run using `nix run`.
         process-compose."default" = { config, ... }:
           let
-            dbName = "pokemon";
+            dbName = "formdata";
           in
           {
             imports = [

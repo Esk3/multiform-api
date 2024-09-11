@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use crate::service::Service;
 use http_handler::HttpHandler;
@@ -15,7 +18,7 @@ mod service;
 #[tokio::main]
 async fn main() {
     let state = Arc::new(Mutex::new(State {
-        store: HashMap::new()
+        store: HashMap::new(),
     }));
     let mut handler = HttpHandler {
         inner: Router { state },
@@ -30,7 +33,7 @@ async fn main() {
 
 #[derive(Debug)]
 pub struct State {
-    pub store: HashMap<String, String>
+    pub store: HashMap<String, String>,
 }
 
 fn index() -> Box<dyn IntoResponse> {
