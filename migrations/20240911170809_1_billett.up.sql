@@ -2,16 +2,16 @@
   -- https://en.wikipedia.org/wiki/International_Air_Transport_Association
 
 create table lufthavner (
-  iata_code varchar(16) primary key,
+  iata_code varchar(4) primary key,
   airport_type text not null,
   name text not null,
-  elevation_ft varchar(11),
+  elevation_ft real,
   continent varchar(6) not null,
-  iso_country varchar(14) not null,
-  iso_region varchar(20) not null,
+  iso_country varchar(2) not null,
+  iso_region varchar(7) not null,
   municipality text not null,
-  gps_code varchar(5),
-  local_code varchar(7),
+  gps_code varchar(12),
+  local_code varchar(10),
   coordinates text not null
 );
 
@@ -20,9 +20,9 @@ create type billett_type as enum ('billig', 'flex', 'luxus');
 
 create table billett (
   billett_id serial primary key,
-  fra_iata_code varchar(4) not null,
+  fra_iata_code varchar(4) not null constraint fra_ikke_erlik_til check (fra_iata_code != til_iata_code),
   til_iata_code varchar(4) not null,
-  timestamp timestamp not null,
+  timestamp timestamp default current_timestamp not null,
   status status not null,
   billett_type billett_type not null,
   foreign key(fra_iata_code) references lufthavner(iata_code),
@@ -30,17 +30,17 @@ create table billett (
 );
 
 create table lufthavner_csv (
-  ident varchar(10) primary key,
+  ident varchar(8) primary key,
   "type" text not null,
   name text not null,
-  elevation_ft varchar(11),
+  elevation_ft real,
   continent varchar(6) not null,
-  iso_country varchar(14) not null,
-  iso_region varchar(20) not null,
+  iso_country varchar(2) not null,
+  iso_region varchar(7) not null,
   municipality text,
-  gps_code varchar(5),
-  iata_code varchar(16),
-  local_code varchar(7),
+  gps_code varchar(12),
+  iata_code varchar(4),
+  local_code varchar(10),
   coordinates text not null
 );
 
