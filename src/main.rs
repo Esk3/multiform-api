@@ -15,7 +15,7 @@ mod service;
 #[tokio::main]
 async fn main() {
     let state = Arc::new(Mutex::new(State {
-        s: HashMap::new()
+        store: HashMap::new()
     }));
     let mut handler = HttpHandler {
         inner: Router { state },
@@ -30,7 +30,7 @@ async fn main() {
 
 #[derive(Debug)]
 pub struct State {
-    pub s: HashMap<String, String>
+    pub store: HashMap<String, String>
 }
 
 fn index() -> Box<dyn IntoResponse> {
@@ -38,7 +38,7 @@ fn index() -> Box<dyn IntoResponse> {
 }
 
 fn read(state: Arc<Mutex<State>>, key: String) -> Box<dyn IntoResponse> {
-    if let Some(value) = state.lock().unwrap().s.get(&key) {
+    if let Some(value) = state.lock().unwrap().store.get(&key) {
         Box::new(value.to_string())
     } else {
         Box::new("key not found")
@@ -46,7 +46,7 @@ fn read(state: Arc<Mutex<State>>, key: String) -> Box<dyn IntoResponse> {
 }
 
 fn write(state: Arc<Mutex<State>>, key: String, value: String) -> Box<dyn IntoResponse> {
-    if let Some(old_value) = state.lock().unwrap().s.insert(key, value) {
+    if let Some(old_value) = state.lock().unwrap().store.insert(key, value) {
         Box::new(old_value)
     } else {
         Box::new(())
