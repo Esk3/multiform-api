@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::{
-    index,
+    bestilling, index,
     into_response::IntoResponse,
     read,
     service::{Fut, Service},
@@ -11,14 +11,17 @@ use tiny_http::Request;
 
 #[derive(Debug, Clone)]
 pub struct Router {
-    pub state: Arc<Mutex<State>>,
+    pub state: State,
 }
 
 impl Router {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new(state: State) -> Self {
+        Self {
+            state,
+        }
     }
-    fn route(&self, url: &str, method: &tiny_http::Method, body: String) -> Route {
+    fn route(&self, request: &tiny_http::Request, body: String) -> Route {
+        let (url, method) = (request.url(), request.method());
         match (url, method) {
             ("/", tiny_http::Method::Get) => Route::GetIndex,
             (url, tiny_http::Method::Get) if url.starts_with("/read/") => {
@@ -29,6 +32,10 @@ impl Router {
                 let key = url.strip_prefix("/write/").unwrap().to_string();
                 Route::PostWrite { key, value: body }
             }
+            (url, _) if url.starts_with("/bestilling") => {
+                let args = bestilling::RouterArgs::clone_from_http_request(request, self.state.pool.clone());
+                Route::Bestilling(args)
+            }
             _ => Route::NotFound,
         }
     }
@@ -37,6 +44,7 @@ impl Router {
             Route::GetIndex => Ok(index()),
             Route::GetRead { key } => Ok(read(self.state.clone(), key)),
             Route::PostWrite { key, value } => Ok(write(self.state.clone(), key, value)),
+            Route::Bestilling(args) => bestilling::Router.call(args).await,
             Route::NotFound => todo!(),
         }
     }
@@ -53,7 +61,7 @@ impl Service<tiny_http::Request> for Router {
         let mut buf = String::new();
         request.as_reader().read_to_string(&mut buf).unwrap();
         let this = self.clone();
-        let route = this.route(request.url(), request.method(), buf);
+        let route = this.route(&request, buf);
         Box::pin(async move {
             let response = this.run_route(route).await.unwrap();
             Ok((request, response))
@@ -65,5 +73,6 @@ enum Route {
     GetIndex,
     GetRead { key: String },
     PostWrite { key: String, value: String },
+    Bestilling(bestilling::RouterArgs),
     NotFound,
 }

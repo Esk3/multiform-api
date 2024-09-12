@@ -596,6 +596,7 @@ dependencies = [
 name = "multiforms"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "serde",
  "serde_qs",
  "sqlx",
