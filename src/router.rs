@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use crate::{
     bestilling, index,
     into_response::IntoResponse,
@@ -16,9 +14,7 @@ pub struct Router {
 
 impl Router {
     pub fn new(state: State) -> Self {
-        Self {
-            state,
-        }
+        Self { state }
     }
     fn route(&self, request: &tiny_http::Request, body: String) -> Route {
         let (url, method) = (request.url(), request.method());
@@ -33,7 +29,11 @@ impl Router {
                 Route::PostWrite { key, value: body }
             }
             (url, _) if url.starts_with("/bestilling") => {
-                let args = bestilling::RouterArgs::clone_from_http_request(request, self.state.pool.clone());
+                let args = bestilling::RouterArgs::clone_from_http_request(
+                    request,
+                    body,
+                    self.state.pool.clone(),
+                );
                 Route::Bestilling(args)
             }
             _ => Route::NotFound,

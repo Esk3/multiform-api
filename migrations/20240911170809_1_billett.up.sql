@@ -1,12 +1,12 @@
-  -- https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-  -- https://en.wikipedia.org/wiki/International_Air_Transport_Association
 
 create table lufthavner (
+  -- https://en.wikipedia.org/wiki/International_Air_Transport_Association
   iata_code varchar(4) primary key,
   airport_type text not null,
   name text not null,
   elevation_ft real,
   continent varchar(6) not null,
+  -- https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
   iso_country varchar(2) not null,
   iso_region varchar(7) not null,
   municipality text not null,
