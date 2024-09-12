@@ -1,4 +1,3 @@
-
 create table lufthavner (
   -- https://en.wikipedia.org/wiki/International_Air_Transport_Association
   iata_code varchar(4) primary key,
@@ -19,12 +18,13 @@ create type status as enum ('voksen', 'barn', 'honnør');
 create type billett_type as enum ('billig', 'flex', 'luxus');
 
 create table billett (
-  billett_id serial primary key,
+  bestillings_id int primary key,
   fra_iata_code varchar(4) not null constraint fra_ikke_erlik_til check (fra_iata_code != til_iata_code),
   til_iata_code varchar(4) not null,
   timestamp timestamp default current_timestamp not null,
   status status not null,
   billett_type billett_type not null,
+  foreign key(bestillings_id) references bestilling(id),
   foreign key(fra_iata_code) references lufthavner(iata_code),
   foreign key(til_iata_code) references lufthavner(iata_code)
 );
