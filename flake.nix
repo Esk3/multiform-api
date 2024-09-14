@@ -32,7 +32,7 @@
           ];
 
 	  shellHook = ''
-	     exec tmux new "nvim ; fish" \; \
+	     exec tmux new "nvim src/main.rs ; fish" \; \
 	       new-window "bacon ; fish" \; \
 	       new-window "nix run ./services/flake.nix ; fish"
 	  '';

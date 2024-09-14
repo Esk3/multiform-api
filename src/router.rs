@@ -29,7 +29,7 @@ impl Router {
                 Route::PostWrite { key, value: body }
             }
             (url, _) if url.starts_with("/bestilling") => {
-                let args = bestilling::RouterArgs::clone_from_http_request(
+                let args = crate::bestilling::router_args::RouterArgs::clone_from_http_request(
                     request,
                     body,
                     self.state.pool.clone(),
@@ -44,7 +44,8 @@ impl Router {
             Route::GetIndex => Ok(index()),
             Route::GetRead { key } => Ok(read(self.state.clone(), key)),
             Route::PostWrite { key, value } => Ok(write(self.state.clone(), key, value)),
-            Route::Bestilling(args) => bestilling::Router.call(args).await,
+            // Route::Bestilling(args) => bestilling::Router.call(args).await,
+            Route::Bestilling(args) => bestilling::handler().call(args).await,
             Route::NotFound => todo!(),
         }
     }
@@ -73,6 +74,6 @@ enum Route {
     GetIndex,
     GetRead { key: String },
     PostWrite { key: String, value: String },
-    Bestilling(bestilling::RouterArgs),
+    Bestilling(crate::bestilling::router_args::RouterArgs),
     NotFound,
 }

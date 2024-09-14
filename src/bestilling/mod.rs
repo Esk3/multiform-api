@@ -1,42 +1,20 @@
-use std::sync::Arc;
+use router_args::RouterArgs;
 
-use crate::into_response::IntoResponse;
+use crate::{into_response::IntoResponse, service::Service};
 
+mod bestilling_id;
 mod billett;
 mod model;
 mod person;
+pub mod router_args;
 
-pub struct RouterArgs {
-    url: String,
-    method: tiny_http::Method,
-    bestillings_id: Option<i32>,
-    body: String,
-    pool: Arc<sqlx::PgPool>,
-}
-
-impl RouterArgs {
-    pub fn clone_from_http_request(
-        request: &tiny_http::Request,
-        body: String,
-        pool: Arc<sqlx::PgPool>,
-    ) -> Self {
-        let bestillings_id = request
-            .headers()
-            .into_iter()
-            .find(|header| header.field.equiv("bestillings_id"))
-            .map(|header| header.value.clone())
-            .map(|value| value.as_str().parse().ok())
-            .flatten();
-        Self {
-            url: request.url().to_string(),
-            method: request.method().clone(),
-            bestillings_id,
-            body,
-            pool,
-        }
+pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> {
+    bestilling_id::BestillingsId {
+        inner: Router,
     }
 }
 
+#[derive(Clone)]
 pub struct Router;
 
 impl crate::service::Service<RouterArgs> for Router {
