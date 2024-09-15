@@ -14,12 +14,23 @@ impl RouterArgs {
         body: String,
         pool: Arc<sqlx::PgPool>,
     ) -> Self {
-        let bestillings_id = request
-            .headers()
+        let bestillings_id = request.headers()
             .iter()
-            .find(|header| header.field.equiv("bestillings_id"))
-            .map(|header| header.value.clone())
-            .and_then(|value| value.as_str().parse().ok());
+            .find(|header| header.field.equiv("Cookie"))
+            .and_then(|header| {
+                header
+                    .value
+                    .to_string()
+                    .split("; ")
+                    .find_map(|s| {
+                        let (key, value) = s.split_once('=')?;
+                        if key != "bestillings_id" {
+                            return  None;
+                        }
+                        Some(value.to_string())
+                    })
+            })
+            .and_then(|value| value.parse().ok());
         Self {
             url: request.url().to_string(),
             method: request.method().clone(),

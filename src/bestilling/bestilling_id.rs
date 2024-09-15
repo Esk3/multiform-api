@@ -68,7 +68,7 @@ where
                 .await
                 .map(|res| {
                     res.into_response()
-                        .with_header(new_header("bestillings_id", &id.to_string()))
+                        .with_header(new_header("Set-Cookie", &format!("bestillings_id={id}")))
                 })
                 .map::<Box<dyn IntoResponse>, _>(|res| Box::new(res))
         })
