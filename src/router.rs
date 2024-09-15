@@ -1,5 +1,6 @@
 use crate::{
-    bestilling, index,
+    bestilling::router_args::RouterArgs,
+    index,
     into_response::IntoResponse,
     read,
     service::{Fut, Service},
@@ -8,13 +9,20 @@ use crate::{
 use tiny_http::Request;
 
 #[derive(Debug, Clone)]
-pub struct Router {
+pub struct Router<B: Clone> {
     pub state: State,
+    bestings_handler: B,
 }
 
-impl Router {
-    pub fn new(state: State) -> Self {
-        Self { state }
+impl<B> Router<B>
+where
+    B: Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone,
+{
+    pub fn new(state: State, bestings_handler: B) -> Self {
+        Self {
+            state,
+            bestings_handler,
+        }
     }
     fn route(&self, request: &tiny_http::Request, body: String) -> Route {
         let (url, method) = (request.url(), request.method());
@@ -39,19 +47,23 @@ impl Router {
             _ => Route::NotFound,
         }
     }
-    async fn run_route(&self, route: Route) -> Result<Box<dyn IntoResponse>, ()> {
+    async fn run_route(&mut self, route: Route) -> Result<Box<dyn IntoResponse>, ()> {
         match route {
             Route::GetIndex => Ok(index()),
             Route::GetRead { key } => Ok(read(self.state.clone(), key)),
             Route::PostWrite { key, value } => Ok(write(self.state.clone(), key, value)),
             // Route::Bestilling(args) => bestilling::Router.call(args).await,
-            Route::Bestilling(args) => bestilling::handler().call(args).await,
+            // Route::Bestilling(args) => bestilling::handler().call(args).await,
+            Route::Bestilling(args) => self.bestings_handler.call(args).await,
             Route::NotFound => todo!(),
         }
     }
 }
 
-impl Service<tiny_http::Request> for Router {
+impl<B> Service<tiny_http::Request> for Router<B>
+where
+    B: Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone + 'static,
+{
     type Response = (Request, Box<dyn IntoResponse>);
 
     type Error = ();
@@ -61,7 +73,7 @@ impl Service<tiny_http::Request> for Router {
     fn call(&mut self, mut request: tiny_http::Request) -> Self::Future {
         let mut buf = String::new();
         request.as_reader().read_to_string(&mut buf).unwrap();
-        let this = self.clone();
+        let mut this = self.clone();
         let route = this.route(&request, buf);
         Box::pin(async move {
             let response = this.run_route(route).await.unwrap();

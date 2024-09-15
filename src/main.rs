@@ -30,7 +30,7 @@ async fn main() {
     };
 
     let mut handler = HttpHandler {
-        inner: Router { state },
+        inner: Router::new(state, bestilling::handler()),
     };
 
     let server = tiny_http::Server::http("127.0.0.1:3000").unwrap();

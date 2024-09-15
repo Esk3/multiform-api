@@ -8,7 +8,7 @@ mod model;
 mod person;
 pub mod router_args;
 
-pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> {
+pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone {
     bestilling_id::BestillingsId::new(Router) 
 }
 
@@ -33,7 +33,6 @@ impl crate::service::Service<Args> for Router {
         }: Args,
     ) -> Self::Future {
         Box::pin(async move {
-            dbg!(bestillings_id, body);
             // match (url.as_str(), method) {
             //     ("/bestilling", _) => todo!(),
             //     (_, _) => todo!(),
@@ -42,7 +41,6 @@ impl crate::service::Service<Args> for Router {
                 .fetch_all(&*pool)
                 .await
                 .unwrap();
-            dbg!(rows);
             Ok::<Box<dyn IntoResponse>, ()>(Box::new(()))
         })
     }

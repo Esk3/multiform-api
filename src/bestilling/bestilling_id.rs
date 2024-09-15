@@ -8,15 +8,18 @@ use crate::{
 
 use super::router_args::{Args, RouterArgs};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BestillingsId<T: Clone> {
     pub inner: T,
-    pub ids: Arc<Mutex<i32>>
+    pub ids: Arc<Mutex<i32>>,
 }
 
 impl<T: Clone> BestillingsId<T> {
     pub fn new(inner: T) -> Self {
-        Self { inner, ids: Arc::new(Mutex::new(0)) }
+        Self {
+            inner,
+            ids: Arc::new(Mutex::new(0)),
+        }
     }
     fn next_id(&self) -> i32 {
         let mut lock = self.ids.lock().unwrap();
@@ -24,7 +27,6 @@ impl<T: Clone> BestillingsId<T> {
         *lock
     }
 }
-
 
 impl<T> service::Service<RouterArgs> for BestillingsId<T>
 where
@@ -36,32 +38,39 @@ where
 
     type Future = Fut<Self::Response, Self::Error>;
 
-    fn call(&mut self, RouterArgs { url, method, bestillings_id, body, pool }: RouterArgs) -> Self::Future {
-        let mut this = self.clone();
-        if let Some(id) = bestillings_id {
-            Box::pin(async move {
-                this.inner
-                    .call(Args {
-                        url,
-                        method,
-                        bestillings_id: id,
-                        body,
-                        pool,
-                    })
-                    .await
-            })
+    fn call(
+        &mut self,
+        RouterArgs {
+            url,
+            method,
+            bestillings_id,
+            body,
+            pool,
+        }: RouterArgs,
+    ) -> Self::Future {
+        let id = if let Some(id) = bestillings_id {
+            id
         } else {
-            Box::pin(async move {
-                this.inner
-                    .call(Args {
-                        url,
-                        method,
-                        bestillings_id: this.next_id(),
-                        body,
-                        pool,
-                    })
-                    .await
-            })
-        }
+            self.next_id()
+        };
+        let args = Args {
+            url,
+            method,
+            bestillings_id: id,
+            body,
+            pool,
+        };
+
+        let mut this = self.clone();
+        Box::pin(async move {
+            this.inner
+                .call(args)
+                .await
+                .map(|res| {
+                    res.into_response()
+                        .with_header(new_header("bestillings_id", &id.to_string()))
+                })
+                .map::<Box<dyn IntoResponse>, _>(|res| Box::new(res))
+        })
     }
 }
