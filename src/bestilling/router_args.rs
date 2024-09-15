@@ -29,3 +29,10 @@ impl RouterArgs {
         }
     }
 }
+pub struct Args {
+    pub url: String,
+    pub method: tiny_http::Method,
+    pub bestillings_id: i32,
+    pub body: String,
+    pub pool: Arc<sqlx::PgPool>,
+}

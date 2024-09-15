@@ -1,4 +1,4 @@
-use router_args::RouterArgs;
+use router_args::{Args, RouterArgs};
 
 use crate::{into_response::IntoResponse, service::Service};
 
@@ -9,15 +9,13 @@ mod person;
 pub mod router_args;
 
 pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> {
-    bestilling_id::BestillingsId {
-        inner: Router,
-    }
+    bestilling_id::BestillingsId::new(Router) 
 }
 
 #[derive(Clone)]
 pub struct Router;
 
-impl crate::service::Service<RouterArgs> for Router {
+impl crate::service::Service<Args> for Router {
     type Response = Box<dyn IntoResponse>;
 
     type Error = ();
@@ -26,13 +24,13 @@ impl crate::service::Service<RouterArgs> for Router {
 
     fn call(
         &mut self,
-        RouterArgs {
+        Args {
             url,
             method,
             bestillings_id,
             body,
             pool,
-        }: RouterArgs,
+        }: Args,
     ) -> Self::Future {
         Box::pin(async move {
             dbg!(bestillings_id, body);
