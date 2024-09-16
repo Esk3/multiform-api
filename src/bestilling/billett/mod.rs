@@ -1,12 +1,19 @@
-use std::sync::Arc;
+use poem::{http::HeaderMap, middleware::SetHeader, EndpointExt, IntoResponse};
+use serde::{Deserialize, Serialize};
+use std::{fmt::Debug, sync::Arc};
 
-use poem_openapi::{param::Path, payload::PlainText, ApiResponse, OpenApi};
-
-use super::router_args::Args;
+use poem::Endpoint;
+use poem_openapi::{param::Path, payload::PlainText, ApiResponse, OpenApi, SecurityScheme};
 
 mod get_billett;
 mod lagre_billett;
 pub mod model;
+
+#[derive(ApiResponse)]
+enum IndexResponse {
+    #[oai(status=200)]
+    Ok(PlainText<String>, #[oai(header="Set-Cookie")] String)
+}
 
 pub struct BilletApi {
     pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
@@ -15,8 +22,19 @@ pub struct BilletApi {
 #[OpenApi]
 impl BilletApi {
     #[oai(path = "/billett", method = "get")]
-    async fn index(&self) -> PlainText<String> {
-        PlainText("billett".to_string())
+    async fn index(&self, headers: &HeaderMap) -> IndexResponse {
+        let billett_id = headers.get("cookie").map(|cookie| {
+            dbg!(cookie
+                .to_str()
+                .unwrap()
+                .split_once('=')
+                .unwrap()
+                .1
+                .parse::<i32>()
+                .unwrap())
+        });
+        dbg!(billett_id);
+        IndexResponse::Ok(PlainText("index billett".to_string()), "billett_id=1".to_string())
     }
     #[oai(path = "/billett/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
