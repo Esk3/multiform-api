@@ -1,21 +1,13 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::sync::Arc;
+use poem::{listener::TcpListener, Route};
 
-use crate::service::Service;
-use http_handler::HttpHandler;
-use into_response::IntoResponse;
-use router::Router;
-use sqlx::PgPool;
-
-pub mod error;
 mod bestilling;
+pub mod error;
 mod file_server;
 mod http_handler;
 mod into_response;
 mod response;
-mod router;
+//mod router;
 mod service;
 
 #[tokio::main]
@@ -24,49 +16,21 @@ async fn main() {
     let database_url = std::env::var("DATABASE_URL").unwrap();
 
     let pool = sqlx::PgPool::connect(&database_url).await.unwrap();
+    let pool = Arc::new(pool);
 
-    let state = State {
-        store: Arc::new(Mutex::new(HashMap::new())),
-        pool: Arc::new(pool),
-    };
-
-    let mut handler = HttpHandler {
-        inner: Router::new(state, bestilling::handler()),
-    };
-
-    let server = tiny_http::Server::http("127.0.0.1:3000").unwrap();
-    println!("server listing on: {}", server.server_addr());
-
-    for request in server.incoming_requests() {
-        if let Ok((req, res)) = handler.call(request).await {
-            req.respond(res.into_response()).unwrap();
-        };
-        //let (req, res) = handler.call(request).await.unwrap();
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct State {
-    pub store: Arc<Mutex<HashMap<String, String>>>,
-    pub pool: Arc<PgPool>,
-}
-
-fn index() -> Box<dyn IntoResponse> {
-    Box::new("hey from index")
-}
-
-fn read(state: State, key: String) -> Box<dyn IntoResponse> {
-    if let Some(value) = state.store.lock().unwrap().get(&key) {
-        Box::new(value.to_string())
-    } else {
-        Box::new("key not found")
-    }
-}
-
-fn write(state: State, key: String, value: String) -> Box<dyn IntoResponse> {
-    if let Some(old_value) = state.store.lock().unwrap().insert(key, value) {
-        Box::new(old_value)
-    } else {
-        Box::new(())
-    }
+    println!("server listing on: localhost:3000");
+    let api_service = poem_openapi::OpenApiService::new(
+        (
+            bestilling::billett::BilletApi { pool: pool.clone() },
+            bestilling::person::PersonApi { pool: pool.clone() },
+        ),
+        "my api",
+        "1.0",
+    )
+    .server("localhost:3000");
+    let ui = api_service.swagger_ui();
+    poem::Server::new(TcpListener::bind("127.0.0.1:3000"))
+        .run(Route::new().nest("/", api_service).nest("/docs", ui))
+        .await
+        .unwrap();
 }

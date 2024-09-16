@@ -3,9 +3,9 @@ use router_args::{Args, RouterArgs};
 use crate::{into_response::IntoResponse, service::Service};
 
 mod bestilling_id;
-mod billett;
+pub mod billett;
 mod model;
-mod person;
+pub mod person;
 pub mod router_args;
 
 pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone {

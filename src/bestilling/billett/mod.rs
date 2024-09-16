@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use poem_openapi::{payload::PlainText, OpenApi};
+
 use crate::{
     error::ServerError,
     into_response::IntoResponse,
@@ -11,6 +13,18 @@ use super::router_args::Args;
 mod get_billett;
 mod lagre_billett;
 pub mod model;
+
+pub struct BilletApi {
+    pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+}
+
+#[OpenApi]
+impl BilletApi {
+    #[oai(path = "/billett", method = "get")]
+    async fn index(&self) -> PlainText<String> {
+        PlainText("billett".to_string())
+    }
+}
 
 pub fn handler() -> impl Service<Args, Response = Box<dyn IntoResponse>, Error = ServerError> + Clone
 {
