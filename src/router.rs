@@ -1,5 +1,6 @@
 use crate::{
     bestilling::router_args::RouterArgs,
+    error::ServerError,
     index,
     into_response::IntoResponse,
     read,
@@ -16,7 +17,7 @@ pub struct Router<B: Clone> {
 
 impl<B> Router<B>
 where
-    B: Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone,
+    B: Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ServerError> + Clone,
 {
     pub fn new(state: State, bestings_handler: B) -> Self {
         Self {
@@ -76,8 +77,12 @@ where
         let mut this = self.clone();
         let route = this.route(&request, buf);
         Box::pin(async move {
-            let response = this.run_route(route).await.unwrap();
-            Ok((request, response))
+            match this.run_route(route).await {
+                Ok(response) => Ok((request, response)),
+                Err(e) => Err(e),
+            }
+            // let response = this.run_route(route).await;
+            // Ok((request, response))
         })
     }
 }

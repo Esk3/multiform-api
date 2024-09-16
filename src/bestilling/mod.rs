@@ -9,39 +9,37 @@ mod person;
 pub mod router_args;
 
 pub fn handler() -> impl Service<RouterArgs, Response = Box<dyn IntoResponse>, Error = ()> + Clone {
-    bestilling_id::BestillingsId::new(Router) 
+    bestilling_id::BestillingsId::new(Router {
+        billett_handler: billett::handler(),
+        person_handler: person::handler(),
+    })
 }
 
 #[derive(Clone)]
-pub struct Router;
+pub struct Router<B, P> {
+    billett_handler: B,
+    person_handler: P,
+}
 
-impl crate::service::Service<Args> for Router {
+impl<B, P> crate::service::Service<Args> for Router<B, P>
+where
+    B: Service<Args, Response = Box<dyn IntoResponse>, Error = ()> + Clone + 'static,
+    P: Service<Args, Response = Box<dyn IntoResponse>, Error = ()> + Clone + 'static,
+{
     type Response = Box<dyn IntoResponse>;
 
     type Error = ();
 
     type Future = crate::service::Fut<Self::Response, Self::Error>;
 
-    fn call(
-        &mut self,
-        Args {
-            url,
-            method,
-            bestillings_id,
-            body,
-            pool,
-        }: Args,
-    ) -> Self::Future {
+    fn call(&mut self, request: Args) -> Self::Future {
+        let mut this = self.clone();
         Box::pin(async move {
-            // match (url.as_str(), method) {
-            //     ("/bestilling", _) => todo!(),
-            //     (_, _) => todo!(),
-            // };
-            let rows = sqlx::query("select * from billett")
-                .fetch_all(&*pool)
-                .await
-                .unwrap();
-            Ok::<Box<dyn IntoResponse>, ()>(Box::new(()))
+            match (request.url.as_str(), &request.method) {
+                ("/bestilling/billett", _) => this.billett_handler.call(request).await,
+                ("/person", _) => this.person_handler.call(request).await,
+                (_, _) => Err(()),
+            }
         })
     }
 }

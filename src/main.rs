@@ -9,6 +9,7 @@ use into_response::IntoResponse;
 use router::Router;
 use sqlx::PgPool;
 
+pub mod error;
 mod bestilling;
 mod file_server;
 mod http_handler;
@@ -37,8 +38,10 @@ async fn main() {
     println!("server listing on: {}", server.server_addr());
 
     for request in server.incoming_requests() {
-        let (req, res) = handler.call(request).await.unwrap();
-        req.respond(res.into_response()).unwrap();
+        if let Ok((req, res)) = handler.call(request).await {
+            req.respond(res.into_response()).unwrap();
+        };
+        //let (req, res) = handler.call(request).await.unwrap();
     }
 }
 

@@ -20,7 +20,7 @@ where
         let mut this = self.clone();
         Box::pin(async move {
             let Ok(response) = this.inner.call(request).await else {
-                panic!();
+                return Err(());
             };
             Ok(response)
         })
