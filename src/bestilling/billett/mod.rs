@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Arc};
 
 use poem::Endpoint;
-use poem_openapi::{param::Path, payload::PlainText, ApiResponse, OpenApi, SecurityScheme};
+use poem_openapi::{param::{Header, Path}, payload::PlainText, ApiRequest, ApiResponse, OpenApi, SecurityScheme};
 
 mod get_billett;
 mod lagre_billett;
@@ -19,9 +19,9 @@ pub struct BilletApi {
     pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
 }
 
-#[OpenApi]
+#[OpenApi(prefix_path="/v1/billett")]
 impl BilletApi {
-    #[oai(path = "/billett", method = "get")]
+    #[oai(path = "/", method = "get")]
     async fn index(&self, headers: &HeaderMap) -> IndexResponse {
         let billett_id = headers.get("cookie").map(|cookie| {
             dbg!(cookie
@@ -35,6 +35,10 @@ impl BilletApi {
         });
         dbg!(billett_id);
         IndexResponse::Ok(PlainText("index billett".to_string()), "billett_id=1".to_string())
+    }
+    #[oai(path="/token", method="get")]
+    async fn token(&self, #[oai(name="my-token")] token: Header<i32>) -> PlainText<String> {
+        PlainText(token.to_string())
     }
     #[oai(path = "/billett/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
