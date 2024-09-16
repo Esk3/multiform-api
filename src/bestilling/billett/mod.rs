@@ -3,10 +3,10 @@ use std::{fmt::Debug, sync::Arc};
 use poem_openapi::{
     param::{Cookie, Path},
     payload::{Json, PlainText},
-    ApiResponse, OpenApi,
+    ApiResponse, OpenApi, Tags,
 };
 
-use super::{bestilling_id, model::Bestilling};
+use crate::bestilling::ny_bestilling;
 
 mod get_billett;
 mod lagre_billett;
@@ -63,6 +63,7 @@ impl BilletApi {
     }
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
+        dbg!("id", *id);
         match query::BillettQuery::new(self.pool.clone())
             .get_billett_by_id(*id)
             .await
@@ -76,22 +77,20 @@ impl BilletApi {
         }
     }
     #[oai(path = "/", method = "post")]
-    async fn post_billett(
-        &self,
-        #[oai(name = "bestillings_id")] bestilling_id: Cookie<Option<i32>>,
-    ) -> PostBilletResponse {
-        let Ok(bestilling_id) = BestillingsId::new(*bestilling_id)
-            .get_or_create(self.pool.clone())
-            .await
-        else {
-            return PostBilletResponse::InternalError;
-        };
+    async fn post_billett(&self, billett: Json<model::BillettForm>) -> PostBilletResponse {
+        dbg!("her");
         match query::BillettQuery::new(self.pool.clone())
-            .insert_billet()
+            .insert_billet(&billett)
             .await
         {
-            Ok(_) => PostBilletResponse::Ok,
-            Err(_) => PostBilletResponse::InternalError,
+            Ok(row) => {
+                dbg!(row);
+                PostBilletResponse::Ok
+            }
+            Err(e) => {
+                dbg!(e);
+                PostBilletResponse::InternalError
+            }
         }
     }
 }
@@ -103,9 +102,11 @@ impl BestillingsId {
     }
     async fn get_or_create(
         &self,
-        _pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+        pool: Arc<sqlx::Pool<sqlx::Postgres>>,
     ) -> Result<i32, sqlx::Error> {
-        dbg!("todo query db for id");
-        Ok(self.0.unwrap_or(1))
+        if let Some(id) = self.0 {
+            return Ok(id);
+        }
+        ny_bestilling(pool).await.map(|res| res.id)
     }
 }

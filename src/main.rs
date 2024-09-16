@@ -18,7 +18,7 @@ async fn main() {
             bestilling::billett::BilletApi { pool: pool.clone() },
             bestilling::person::PersonApi { pool: pool.clone() },
         ),
-        "my api",
+        "Fly Api",
         "1.0",
     )
     .server("localhost:3000");
