@@ -9,6 +9,8 @@ use poem_openapi::{
     ApiRequest, ApiResponse, OpenApi, SecurityScheme,
 };
 
+use super::bestilling_id;
+
 mod get_billett;
 mod lagre_billett;
 pub mod model;
@@ -26,21 +28,11 @@ pub struct BilletApi {
 #[OpenApi(prefix_path = "/v1/billett")]
 impl BilletApi {
     #[oai(path = "/", method = "get")]
-    async fn index(&self, headers: &HeaderMap) -> IndexResponse {
-        let billett_id = headers.get("cookie").map(|cookie| {
-            dbg!(cookie
-                .to_str()
-                .unwrap()
-                .split_once('=')
-                .unwrap()
-                .1
-                .parse::<i32>()
-                .unwrap())
-        });
-        dbg!(billett_id);
+    async fn index(&self, #[oai(name="bestilling_id")] bestilling_id: Cookie<Option<i32>>) -> IndexResponse {
+        let bestilling_id = bestilling_id.0.unwrap_or(1);
         IndexResponse::Ok(
             PlainText("index billett".to_string()),
-            "billett_id=1".to_string(),
+            format!("bestilling_id={bestilling_id}")
         )
     }
     #[oai(path = "/token", method = "get")]
