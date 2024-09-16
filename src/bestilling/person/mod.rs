@@ -8,7 +8,7 @@ pub struct PersonApi {
     pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
 }
 
-#[OpenApi]
+#[OpenApi(prefix_path="/v1/person")]
 impl PersonApi {
     #[oai(path = "/person", method = "get")]
     async fn index(&self) -> PlainText<String> {

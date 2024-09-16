@@ -2,13 +2,14 @@ use std::{fmt::Debug, sync::Arc};
 
 use poem_openapi::{
     param::{Cookie, Path},
-    payload::PlainText,
-    ApiResponse, OpenApi, 
+    payload::{Json, PlainText},
+    ApiResponse, OpenApi,
 };
 
 mod get_billett;
 mod lagre_billett;
 pub mod model;
+mod query;
 
 #[derive(ApiResponse)]
 enum IndexResponse {
@@ -33,12 +34,18 @@ impl BilletApi {
             format!("bestilling_id={bestilling_id}"),
         )
     }
-    #[oai(path = "/billett/:id", method = "get")]
+    #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
-        dbg!("here");
-        match get_billett(*id, self.pool.clone()).await {
-            Ok(res) => GetBillettResponse::Ok(PlainText(res)),
-            Err(_) => GetBillettResponse::NotFound,
+        match query::BillettQuery::new(self.pool.clone())
+            .get_billett_by_id(*id)
+            .await
+        {
+            Ok(Some(billett)) => GetBillettResponse::Ok(Json(billett)),
+            Ok(None) => GetBillettResponse::NotFound,
+            Err(e) => {
+                dbg!(e);
+                GetBillettResponse::InternalError
+            },
         }
     }
 }
@@ -46,26 +53,9 @@ impl BilletApi {
 #[derive(Debug, ApiResponse)]
 enum GetBillettResponse {
     #[oai(status = 200)]
-    Ok(PlainText<String>),
+    Ok(Json<model::Billett>),
     #[oai(status = 404)]
     NotFound,
-}
-
-async fn get_billett(id: i32, pool: Arc<sqlx::PgPool>) -> Result<String, sqlx::Error> {
-    dbg!("quering billett med id ", id);
-    let result: model::Billett = dbg!(dbg!(
-        sqlx::query_as("select bestillings_id, fra_iata_code, til_iata_code, status::text, billett_type::text, timestamp::text from billett where bestillings_id = $1")
-            .bind(id)
-            .fetch_one(&*pool)
-            .await
-    )?);
-    Ok(format!(
-        "
-        fra: {}
-        til: {}
-        status: {}
-        billett type: {}
-            ",
-        result.fra_iata_code, result.til_iata_code, result.status, result.billett_type
-    ))
+    #[oai(status = 500)]
+    InternalError,
 }
