@@ -2,13 +2,7 @@ use std::sync::Arc;
 use poem::{listener::TcpListener, Route};
 
 mod bestilling;
-pub mod error;
 mod file_server;
-mod http_handler;
-mod into_response;
-mod response;
-//mod router;
-mod service;
 
 #[tokio::main]
 async fn main() {

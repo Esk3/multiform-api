@@ -1,12 +1,6 @@
 use std::sync::Arc;
 
-use poem_openapi::{payload::PlainText, OpenApi};
-
-use crate::{
-    error::ServerError,
-    into_response::IntoResponse,
-    service::{Fut, Service},
-};
+use poem_openapi::{param::Path, payload::PlainText, ApiResponse, OpenApi};
 
 use super::router_args::Args;
 
@@ -24,46 +18,33 @@ impl BilletApi {
     async fn index(&self) -> PlainText<String> {
         PlainText("billett".to_string())
     }
-}
-
-pub fn handler() -> impl Service<Args, Response = Box<dyn IntoResponse>, Error = ServerError> + Clone
-{
-    Handler
-}
-
-#[derive(Clone)]
-struct Handler;
-impl Service<Args> for Handler {
-    type Response = Box<dyn IntoResponse>;
-
-    type Error = ServerError;
-
-    type Future = Fut<Self::Response, Self::Error>;
-
-    fn call(&mut self, request: Args) -> Self::Future {
-        Box::pin(async move {
-            match request.method {
-                tiny_http::Method::Get => get_billett(request.bestillings_id, request.pool).await,
-                _ => todo!(),
-            }
-        })
+    #[oai(path = "/billett/:id", method = "get")]
+    async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
+        dbg!("here");
+        match get_billett(*id, self.pool.clone()).await {
+            Ok(res) => GetBillettResponse::Ok(PlainText(res)),
+            Err(_) => GetBillettResponse::NotFound,
+        }
     }
 }
 
-async fn get_billett(
-    id: i32,
-    pool: Arc<sqlx::PgPool>,
-) -> Result<Box<dyn IntoResponse>, ServerError> {
+#[derive(Debug, ApiResponse)]
+enum GetBillettResponse {
+    #[oai(status = 200)]
+    Ok(PlainText<String>),
+    #[oai(status = 404)]
+    NotFound,
+}
+
+async fn get_billett(id: i32, pool: Arc<sqlx::PgPool>) -> Result<String, sqlx::Error> {
     dbg!("quering billett med id ", id);
     let result: model::Billett = dbg!(dbg!(
         sqlx::query_as("select bestillings_id, fra_iata_code, til_iata_code, status::text, billett_type::text, timestamp::text from billett where bestillings_id = $1")
             .bind(id)
             .fetch_one(&*pool)
             .await
-    )
-    .map_err(|_| ())?);
-    dbg!(&result);
-    Ok(Box::new(format!(
+    )?);
+    Ok(format!(
         "
         fra: {}
         til: {}
@@ -71,5 +52,5 @@ async fn get_billett(
         billett type: {}
             ",
         result.fra_iata_code, result.til_iata_code, result.status, result.billett_type
-    )))
+    ))
 }
