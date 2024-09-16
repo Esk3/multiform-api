@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Arc};
 
 use poem::Endpoint;
-use poem_openapi::{param::{Header, Path}, payload::PlainText, ApiRequest, ApiResponse, OpenApi, SecurityScheme};
+use poem_openapi::{param::{Cookie, Header, Path}, payload::PlainText, ApiRequest, ApiResponse, OpenApi, SecurityScheme};
 
 mod get_billett;
 mod lagre_billett;
@@ -37,7 +37,7 @@ impl BilletApi {
         IndexResponse::Ok(PlainText("index billett".to_string()), "billett_id=1".to_string())
     }
     #[oai(path="/token", method="get")]
-    async fn token(&self, #[oai(name="my-token")] token: Header<i32>) -> PlainText<String> {
+    async fn token(&self, #[oai(name="my-token")] token: Cookie<String>) -> PlainText<String> {
         PlainText(token.to_string())
     }
     #[oai(path = "/billett/:id", method = "get")]
