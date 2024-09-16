@@ -1,15 +1,10 @@
-use poem::{http::HeaderMap, middleware::SetHeader, EndpointExt, IntoResponse};
-use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Arc};
 
-use poem::Endpoint;
 use poem_openapi::{
-    param::{Cookie, Header, Path},
+    param::{Cookie, Path},
     payload::PlainText,
-    ApiRequest, ApiResponse, OpenApi, SecurityScheme,
+    ApiResponse, OpenApi, 
 };
-
-use super::bestilling_id;
 
 mod get_billett;
 mod lagre_billett;
@@ -28,22 +23,15 @@ pub struct BilletApi {
 #[OpenApi(prefix_path = "/v1/billett")]
 impl BilletApi {
     #[oai(path = "/", method = "get")]
-    async fn index(&self, #[oai(name="bestilling_id")] bestilling_id: Cookie<Option<i32>>) -> IndexResponse {
+    async fn index(
+        &self,
+        #[oai(name = "bestilling_id")] bestilling_id: Cookie<Option<i32>>,
+    ) -> IndexResponse {
         let bestilling_id = bestilling_id.0.unwrap_or(1);
         IndexResponse::Ok(
             PlainText("index billett".to_string()),
-            format!("bestilling_id={bestilling_id}")
+            format!("bestilling_id={bestilling_id}"),
         )
-    }
-    #[oai(path = "/token", method = "get")]
-    async fn token(
-        &self,
-        #[oai(name = "my-token")] token: Cookie<Option<String>>,
-    ) -> PlainText<String> {
-        match token.0 {
-            Some(token) => PlainText(token),
-            None => PlainText("no token".to_string()),
-        }
     }
     #[oai(path = "/billett/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
