@@ -29,6 +29,7 @@
 	    bacon
 	    sqlx-cli
 	    rust-analyzer
+	    fish
           ];
 
 	  shellHook = ''

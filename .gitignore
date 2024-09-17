@@ -1,3 +1,4 @@
 /target
 .bacon-locations
 data/pg1
+.env

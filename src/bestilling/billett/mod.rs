@@ -8,8 +8,6 @@ use poem_openapi::{
 
 use crate::bestilling::ny_bestilling;
 
-mod get_billett;
-mod lagre_billett;
 pub mod model;
 mod query;
 
