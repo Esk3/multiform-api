@@ -2,7 +2,6 @@ use poem::{listener::TcpListener, Route};
 use std::sync::Arc;
 
 mod bestilling;
-mod file_server;
 
 #[tokio::main]
 async fn main() {

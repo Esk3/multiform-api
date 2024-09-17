@@ -3,7 +3,7 @@ use std::{fmt::Debug, sync::Arc};
 use poem_openapi::{
     param::{Cookie, Path},
     payload::{Json, PlainText},
-    ApiResponse, OpenApi, Tags,
+    ApiResponse, OpenApi,
 };
 
 use crate::bestilling::ny_bestilling;
