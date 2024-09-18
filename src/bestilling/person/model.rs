@@ -1,10 +1,16 @@
 #[derive(Debug, sqlx::FromRow)]
 pub struct Person {
-    bestillings_id: i32,
+    id: i32,
     fornavn: String,
     etternavn: String,
     adresse: String,
-    postnummer: u32,
+    postnummer: i32,
     epost: String,
     telefonnummer: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct BestillingPerson {
+    bestilling_id: i32,
+    person_id: i32,
 }

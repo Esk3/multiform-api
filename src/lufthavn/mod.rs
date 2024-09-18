@@ -7,8 +7,8 @@ use poem_openapi::{
 };
 use std::sync::Arc;
 
-pub mod model;
-pub mod query;
+mod model;
+mod query;
 
 #[derive(ApiResponse)]
 enum LufthavnFraIataCodeResponse {

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 pub mod billett;
-mod model;
+pub mod model;
 pub mod person;
 
 #[derive(Debug, sqlx::FromRow)]
