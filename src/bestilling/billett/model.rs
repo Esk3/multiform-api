@@ -14,7 +14,6 @@ pub struct Billett {
 
 #[derive(Debug, Object)]
 pub struct BillettForm {
-    pub(super) bestillings_id: i32,
     /// https://en.wikipedia.org/wiki/International_Air_Transport_Association
     pub(super) fra_iata_code: String,
     /// https://en.wikipedia.org/wiki/International_Air_Transport_Association

@@ -61,7 +61,6 @@ impl BilletApi {
     }
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
-        dbg!("id", *id);
         match query::BillettQuery::new(self.pool.clone())
             .get_billett_by_id(*id)
             .await
@@ -75,10 +74,17 @@ impl BilletApi {
         }
     }
     #[oai(path = "/", method = "post")]
-    async fn post_billett(&self, billett: Json<model::BillettForm>) -> PostBilletResponse {
-        dbg!("her");
+    async fn post_billett(
+        &self,
+        billett: Json<model::BillettForm>,
+        #[oai(name = "bestilling_id")] id: Cookie<Option<i32>>,
+    ) -> PostBilletResponse {
+        let id = BestillingsId::new(*id)
+            .get_or_create(self.pool.clone())
+            .await
+            .unwrap();
         match query::BillettQuery::new(self.pool.clone())
-            .insert_billet(&billett)
+            .insert_billet(&billett, id)
             .await
         {
             Ok(row) => {

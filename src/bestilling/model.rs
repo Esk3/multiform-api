@@ -2,9 +2,14 @@ use super::{billett::model::Billett, person::model::Person};
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Bestilling {
-    id: i32,
+    pub id: i32,
     #[sqlx(flatten)]
-    person: Person,
+    pub person: Person,
     #[sqlx(faltten)]
-    billet: Billett,
+    pub billet: Billett,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct BestillingId {
+    pub id: i32,
 }

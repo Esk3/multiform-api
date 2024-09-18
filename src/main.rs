@@ -2,6 +2,7 @@ use poem::{listener::TcpListener, Route};
 use std::sync::Arc;
 
 mod bestilling;
+mod lufthavn;
 
 #[tokio::main]
 async fn main() {
@@ -16,6 +17,7 @@ async fn main() {
         (
             bestilling::billett::BilletApi { pool: pool.clone() },
             bestilling::person::PersonApi { pool: pool.clone() },
+            lufthavn::LufthavnApi::new(pool.clone()),
         ),
         "Fly Api",
         "1.0",
