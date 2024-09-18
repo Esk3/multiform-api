@@ -6,7 +6,7 @@ use poem_openapi::{
     ApiResponse, OpenApi,
 };
 
-use crate::bestilling::ny_bestilling;
+use crate::{bestilling::ny_bestilling, ApiTags};
 
 pub mod model;
 mod query;
@@ -41,7 +41,7 @@ pub struct BilletApi {
     pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
 }
 
-#[OpenApi(prefix_path = "/v1/billett")]
+#[OpenApi(prefix_path = "/v1/billett", tag = "ApiTags::Billett")]
 impl BilletApi {
     #[oai(path = "/", method = "get")]
     async fn index(

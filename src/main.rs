@@ -1,4 +1,5 @@
 use poem::{listener::TcpListener, Route};
+use poem_openapi::Tags;
 use std::sync::Arc;
 
 mod bestilling;
@@ -28,4 +29,12 @@ async fn main() {
         .run(Route::new().nest("/", api_service).nest("/docs", ui))
         .await
         .unwrap();
+}
+
+#[derive(Debug, Tags)]
+pub enum ApiTags {
+    Lufthavn,
+    Billett,
+    Person,
+    Bestilling
 }

@@ -1,8 +1,9 @@
+use crate::ApiTags;
 use model::SearchQuery;
 use poem_openapi::{
     param::{Path, Query},
     payload::Json,
-    ApiRequest, ApiResponse, Object, OpenApi,
+    ApiResponse, OpenApi,
 };
 use std::sync::Arc;
 
@@ -36,11 +37,12 @@ impl LufthavnApi {
     }
 }
 
-#[OpenApi(prefix_path = "/v1/lufthavn")]
+#[OpenApi(prefix_path = "/v1/lufthavn", tag="ApiTags::Lufthavn")]
 impl LufthavnApi {
     #[oai(path = "/:iata_code", method = "get")]
     async fn get_by_iata_code(
         &self,
+        /// eg "BGO" https://en.wikipedia.org/wiki/International_Air_Transport_Association
         #[oai(validator(min_length = 3, max_length = 4))] Path(iata_code): Path<String>,
     ) -> LufthavnFraIataCodeResponse {
         match query::Query::new(self.pool.clone())

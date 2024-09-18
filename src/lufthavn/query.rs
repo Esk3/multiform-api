@@ -17,7 +17,7 @@ impl Query {
         sqlx::query_as(
             "select *
             from lufthavner
-            where iata_code = $1",
+            where iata_code = upper($1)",
         )
         .bind(iata_code)
         .fetch_optional(&*self.pool)
