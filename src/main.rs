@@ -37,7 +37,7 @@ pub enum ApiTags {
     Lufthavn,
     Billett,
     Person,
-    Bestilling
+    Bestilling,
 }
 
 pub struct BestillingsId(Option<i32>);

@@ -6,7 +6,7 @@ use poem_openapi::{
     ApiResponse, OpenApi,
 };
 
-use crate::{bestilling::ny_bestilling, ApiTags, BestillingsId};
+use crate::{ApiTags, BestillingsId};
 
 pub mod model;
 mod query;
@@ -32,7 +32,7 @@ enum GetBillettResponse {
 #[derive(Debug, ApiResponse)]
 enum PostBilletResponse {
     #[oai(status = 201)]
-    Ok,
+    Ok(#[oai(header="Set-Cookie")] String),
     #[oai(status = 500)]
     InternalError,
 }
@@ -89,7 +89,7 @@ impl BilletApi {
         {
             Ok(row) => {
                 dbg!(row);
-                PostBilletResponse::Ok
+                PostBilletResponse::Ok(format!("bestilling_id{id}"))
             }
             Err(e) => {
                 dbg!(e);
@@ -98,4 +98,3 @@ impl BilletApi {
         }
     }
 }
-
