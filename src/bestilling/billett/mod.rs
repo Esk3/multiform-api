@@ -6,7 +6,7 @@ use poem_openapi::{
     ApiResponse, OpenApi,
 };
 
-use crate::{bestilling::ny_bestilling, ApiTags};
+use crate::{bestilling::ny_bestilling, ApiTags, BestillingsId};
 
 pub mod model;
 mod query;
@@ -99,18 +99,3 @@ impl BilletApi {
     }
 }
 
-struct BestillingsId(Option<i32>);
-impl BestillingsId {
-    fn new(id: Option<i32>) -> Self {
-        Self(id)
-    }
-    async fn get_or_create(
-        &self,
-        pool: Arc<sqlx::Pool<sqlx::Postgres>>,
-    ) -> Result<i32, sqlx::Error> {
-        if let Some(id) = self.0 {
-            return Ok(id);
-        }
-        ny_bestilling(pool).await.map(|res| res.id)
-    }
-}

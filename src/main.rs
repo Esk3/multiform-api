@@ -1,3 +1,4 @@
+use bestilling::ny_bestilling;
 use poem::{listener::TcpListener, Route};
 use poem_openapi::Tags;
 use std::sync::Arc;
@@ -37,4 +38,20 @@ pub enum ApiTags {
     Billett,
     Person,
     Bestilling
+}
+
+pub struct BestillingsId(Option<i32>);
+impl BestillingsId {
+    fn new(id: Option<i32>) -> Self {
+        Self(id)
+    }
+    async fn get_or_create(
+        &self,
+        pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+    ) -> Result<i32, sqlx::Error> {
+        if let Some(id) = self.0 {
+            return Ok(id);
+        }
+        ny_bestilling(pool).await.map(|res| res.id)
+    }
 }

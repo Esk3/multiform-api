@@ -6,7 +6,7 @@ pub mod person;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Bestilling {
-    id: i32,
+    pub id: i32,
 }
 pub async fn ny_bestilling(
     pool: Arc<sqlx::Pool<sqlx::Postgres>>,

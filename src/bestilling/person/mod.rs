@@ -1,4 +1,4 @@
-use crate::ApiTags;
+use crate::{ApiTags, BestillingsId};
 
 use model::PersonId;
 use poem_openapi::{
@@ -22,7 +22,10 @@ enum InsertPersonResult {
 #[derive(ApiResponse)]
 enum InsertBestillingPersonResult {
     #[oai(status = 200)]
-    Ok(Json<model::BestillingPerson>),
+    Ok(
+        Json<model::BestillingPerson>,
+        #[oai(header = "Set-Cookie")] String,
+    ),
     #[oai(status = 500)]
     Err,
 }
@@ -55,11 +58,15 @@ impl PersonApi {
         &self,
         Json(bestilling_person): Json<model::BestillingPerson>,
     ) -> InsertBestillingPersonResult {
+        let bestilling_id = bestilling_person.bestilling_id;
         match query::PersonQuery::new(self.pool.clone())
             .insert_bestilling_person(bestilling_person.bestilling_id, bestilling_person.person_id)
             .await
         {
-            Ok(bestilling_person) => InsertBestillingPersonResult::Ok(Json(bestilling_person)),
+            Ok(bestilling_person) => InsertBestillingPersonResult::Ok(
+                Json(bestilling_person),
+                format!("bestilling_id={bestilling_id}"),
+            ),
             Err(e) => {
                 dbg!(e);
                 InsertBestillingPersonResult::Err
@@ -69,15 +76,24 @@ impl PersonApi {
     #[oai(path = "/cookie_bestilling_person", method = "post")]
     async fn bestilling_person(
         &self,
-        Cookie(bestilling_id): Cookie<i32>,
+        Cookie(bestilling_id): Cookie<Option<i32>>,
         Json(person_id): Json<PersonId>,
     ) -> InsertBestillingPersonResult {
         dbg!(bestilling_id, person_id.id);
+        let Ok(bestilling_id) = BestillingsId::new(bestilling_id)
+            .get_or_create(self.pool.clone())
+            .await
+        else {
+            return InsertBestillingPersonResult::Err;
+        };
         match query::PersonQuery::new(self.pool.clone())
             .insert_bestilling_person(bestilling_id, person_id.id)
             .await
         {
-            Ok(bestilling_person) => InsertBestillingPersonResult::Ok(Json(bestilling_person)),
+            Ok(bestilling_person) => InsertBestillingPersonResult::Ok(
+                Json(bestilling_person),
+                format!("bestilling_id={bestilling_id}"),
+            ),
             Err(e) => {
                 dbg!(e);
                 InsertBestillingPersonResult::Err
