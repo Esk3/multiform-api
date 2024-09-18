@@ -28,15 +28,15 @@ impl Query {
             "
             select *
             from lufthavner
-            where ( iata_code = $1 or $1 is null )
-            and ( airport_type = $2 or $2 is null )
+            where ( iata_code = upper($1) or $1 is null )
+            and ( airport_type = lower($2) or $2 is null )
             and ( case when $3 then name = $4 else lower(name) like '%' || lower($4) || '%' end or $4 is null )
             and ( elevation_ft = $5 or $5 is null )
             and ( elevation_ft < $6 or $6 is null )
             and ( elevation_ft > $7 or $7 is null )
-            and ( continent = $8 or $8 is null )
-            and ( iso_country = $9 or $9 is null )
-            and ( iso_region = $10 or $10 is null )
+            and ( continent = upper($8) or $8 is null )
+            and ( iso_country = upper($9) or $9 is null )
+            and ( iso_region = upper($10) or $10 is null )
             and ( case when $11 then municipality = $12 else lower(municipality) like '%' || lower($12) || '%' end or $12 is null )
             and ( gps_code = $13 or $13 is null )
             and ( local_code = $14 or $14 is null )

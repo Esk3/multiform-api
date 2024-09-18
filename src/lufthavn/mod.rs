@@ -10,6 +10,15 @@ pub mod model;
 pub mod query;
 
 #[derive(ApiResponse)]
+enum LufthavnFraIataCodeResponse {
+    #[oai(status = 200)]
+    Ok(Json<model::Lufthavn>),
+    #[oai(status = 404)]
+    NotFound,
+    #[oai(status = 500)]
+    Err,
+}
+#[derive(ApiResponse)]
 enum SearchResponse {
     #[oai(status = 200)]
     Ok(Json<Vec<model::Lufthavn>>),
@@ -29,16 +38,29 @@ impl LufthavnApi {
 
 #[OpenApi(prefix_path = "/v1/lufthavn")]
 impl LufthavnApi {
-    #[oai(path = "/:code", method = "get")]
+    #[oai(path = "/:iata_code", method = "get")]
     async fn get_by_iata_code(
         &self,
-        #[oai(validator(min_length = 3, max_length = 4))] code: Path<String>,
-    ) {
+        #[oai(validator(min_length = 3, max_length = 4))] Path(iata_code): Path<String>,
+    ) -> LufthavnFraIataCodeResponse {
+        match query::Query::new(self.pool.clone())
+            .get_by_iata_code(iata_code)
+            .await
+        {
+            Ok(Some(lufthavn)) => LufthavnFraIataCodeResponse::Ok(Json(lufthavn)),
+            Ok(None) => LufthavnFraIataCodeResponse::NotFound,
+            Err(e) => {
+                dbg!(e);
+                LufthavnFraIataCodeResponse::Err
+            }
+        }
     }
     #[oai(path = "/search", method = "get")]
     #[allow(clippy::too_many_arguments)]
     async fn search(
         &self,
+        /// https://en.wikipedia.org/wiki/International_Air_Transport_Association
+        #[oai(validator(min_length = 3, max_length = 4))]
         Query(iata_code): Query<Option<String>>,
         // Find some way to limit accepted strings
         /// Option<"seaplane_base" | "heliport" | "small_airport"  | "medium_airport" |
@@ -49,9 +71,14 @@ impl LufthavnApi {
         Query(elevation_ft): Query<Option<f32>>,
         Query(elevation_ft_greater_then): Query<Option<f32>>,
         Query(elevation_ft_less_then): Query<Option<f32>>,
+        /// "NA" | "AF" | "EU" | "AN" | "SA" | "AS" | "OC"
         Query(continent): Query<Option<String>>,
+        /// eg "NO" | "DK" | "UK" | ...
+        /// https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+        #[oai(validator(min_length = 2, max_length = 2))]
         Query(iso_country): Query<Option<String>>,
         Query(iso_region): Query<Option<String>>,
+        /// By navn
         Query(municipality): Query<Option<String>>,
         Query(municipality_exact): Query<Option<bool>>,
         Query(gps_code): Query<Option<String>>,
