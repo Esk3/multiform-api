@@ -24,7 +24,12 @@ select r.reise_id, r.fly_id,
   from reiser r left join
   billetter b on b.reise_id = r.reise_id
   group by (r.reise_id);
---
+
+create view totalt_ledige_seter as
+  select reise_id, fly_id,
+    luxus_billetter + flex_billetter + billig_billetter as totalt_billetter,
+    luxus_seter + flex_seter + billig_seter as totalt_seter
+  from ledige_seter;
 
 create view bekreftet_billetter as
   select *

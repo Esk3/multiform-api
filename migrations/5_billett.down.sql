@@ -1,6 +1,7 @@
 drop trigger før_utløpt_billett_oppdatering_trigger on billetter;
 drop function fn_før_utløpt_billett_oppdatering;
 
+drop view totalt_ledige_seter;
 drop view ledige_seter;
 drop view kan_bli_bekreftet_billetter;
 drop view utløpt_billetter;
