@@ -28,4 +28,15 @@ impl FlyQuery {
         .fetch_optional(&*self.pool)
         .await
     }
+    pub async fn create_fly(&self, form: model::FlyForm) -> Result<model::Fly, sqlx::Error> {
+        sqlx::query_as(
+            "insert into fly (luxus_seter, flex_seter, billig_seter)
+            values ($1, $2, $3)",
+        )
+        .bind(form.luxus_seter)
+        .bind(form.flex_seter)
+        .bind(form.billig_seter)
+        .fetch_one(&*self.pool)
+        .await
+    }
 }

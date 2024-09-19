@@ -4,8 +4,8 @@ use poem_openapi::Tags;
 use std::sync::Arc;
 
 mod bestilling;
-mod lufthavn;
 mod fly;
+mod lufthavn;
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +18,7 @@ async fn main() {
     println!("server listing on: localhost:3000");
     let api_service = poem_openapi::OpenApiService::new(
         (
-            bestilling::billett::BilletApi::new(pool.clone()) ,
+            bestilling::billett::BilletApi::new(pool.clone()),
             bestilling::person::PersonApi::new(pool.clone()),
             lufthavn::LufthavnApi::new(pool.clone()),
             fly::FlyApi::new(pool.clone()),

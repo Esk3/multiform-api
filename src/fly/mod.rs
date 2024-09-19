@@ -25,6 +25,14 @@ enum FlyResponse {
     Err,
 }
 
+#[derive(ApiResponse)]
+enum CreateFlyResponse {
+    #[oai(status = 201)]
+    Ok(Json<model::Fly>),
+    #[oai(status = 500)]
+    Err,
+}
+
 pub struct FlyApi {
     pool: Arc<sqlx::Pool<sqlx::Postgres>>,
 }
@@ -56,6 +64,16 @@ impl FlyApi {
                 dbg!(e);
                 FlyResponse::Err
             }
+        }
+    }
+    #[oai(path = "/", method = "post")]
+    async fn create_fly(&self, Json(fly_form): Json<model::FlyForm>) -> CreateFlyResponse {
+        match FlyQuery::new(self.pool.clone()).create_fly(fly_form).await {
+            Ok(fly) => CreateFlyResponse::Ok(Json(fly)),
+            Err(e) => {
+                dbg!(e);
+                CreateFlyResponse::Err
+            },
         }
     }
 }
