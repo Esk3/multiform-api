@@ -10,6 +10,7 @@ use std::sync::Arc;
 mod model;
 mod query;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(ApiResponse)]
 enum LufthavnFraIataCodeResponse {
     #[oai(status = 200)]
@@ -37,13 +38,14 @@ impl LufthavnApi {
     }
 }
 
-#[OpenApi(prefix_path = "/v1/lufthavn", tag="ApiTags::Lufthavn")]
+#[OpenApi(prefix_path = "/v1/lufthavn", tag = "ApiTags::Lufthavn")]
 impl LufthavnApi {
     #[oai(path = "/:iata_code", method = "get")]
     async fn get_by_iata_code(
         &self,
         /// eg "BGO" https://en.wikipedia.org/wiki/International_Air_Transport_Association
-        #[oai(validator(min_length = 3, max_length = 4))] Path(iata_code): Path<String>,
+        #[oai(validator(min_length = 3, max_length = 4))]
+        Path(iata_code): Path<String>,
     ) -> LufthavnFraIataCodeResponse {
         match query::Query::new(self.pool.clone())
             .get_by_iata_code(iata_code)

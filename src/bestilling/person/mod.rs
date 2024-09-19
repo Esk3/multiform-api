@@ -55,7 +55,13 @@ enum CreateBestillingPersonResult {
 }
 
 pub struct PersonApi {
-    pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+    pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+}
+
+impl PersonApi {
+    pub fn new(pool: Arc<sqlx::Pool<sqlx::Postgres>>) -> Self {
+        Self { pool }
+    }
 }
 
 #[OpenApi(prefix_path = "/v1/person", tag = "ApiTags::Person")]

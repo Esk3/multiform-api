@@ -32,13 +32,19 @@ enum GetBillettResponse {
 #[derive(Debug, ApiResponse)]
 enum PostBilletResponse {
     #[oai(status = 201)]
-    Ok(#[oai(header="Set-Cookie")] String),
+    Ok(#[oai(header = "Set-Cookie")] String),
     #[oai(status = 500)]
     InternalError,
 }
 
 pub struct BilletApi {
-    pub pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+    pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+}
+
+impl BilletApi {
+    pub fn new(pool: Arc<sqlx::Pool<sqlx::Postgres>>) -> Self {
+        Self { pool }
+    }
 }
 
 #[OpenApi(prefix_path = "/v1/billett", tag = "ApiTags::Billett")]

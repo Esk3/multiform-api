@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 mod bestilling;
 mod lufthavn;
+mod fly;
 
 #[tokio::main]
 async fn main() {
@@ -17,9 +18,10 @@ async fn main() {
     println!("server listing on: localhost:3000");
     let api_service = poem_openapi::OpenApiService::new(
         (
-            bestilling::billett::BilletApi { pool: pool.clone() },
-            bestilling::person::PersonApi { pool: pool.clone() },
+            bestilling::billett::BilletApi::new(pool.clone()) ,
+            bestilling::person::PersonApi::new(pool.clone()),
             lufthavn::LufthavnApi::new(pool.clone()),
+            fly::FlyApi::new(pool.clone()),
         ),
         "Fly Api",
         "1.0",
@@ -38,6 +40,7 @@ pub enum ApiTags {
     Billett,
     Person,
     Bestilling,
+    Fly,
 }
 
 pub struct BestillingsId(Option<i32>);
