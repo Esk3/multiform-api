@@ -55,6 +55,7 @@ impl FlyApi {
             }
         }
     }
+
     #[oai(path = "/:id", method = "get")]
     async fn fly_by_id(&self, Path(id): Path<i32>) -> FlyResponse {
         match FlyQuery::new(self.pool.clone()).get_fly_by_id(id).await {
@@ -66,6 +67,7 @@ impl FlyApi {
             }
         }
     }
+
     #[oai(path = "/", method = "post")]
     async fn create_fly(&self, Json(fly_form): Json<model::FlyForm>) -> CreateFlyResponse {
         match FlyQuery::new(self.pool.clone()).create_fly(fly_form).await {
