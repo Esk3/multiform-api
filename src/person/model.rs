@@ -21,14 +21,3 @@ pub struct PersonForm {
     pub epost: String,
     pub telefonnummer: i32,
 }
-
-#[derive(Debug, sqlx::FromRow, Object)]
-pub struct BestillingPerson {
-    pub bestilling_id: i32,
-    pub person_id: i32,
-}
-
-#[derive(Debug, sqlx::FromRow, Object)]
-pub struct PersonId {
-    pub id: i32,
-}

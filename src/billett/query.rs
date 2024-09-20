@@ -24,23 +24,24 @@ impl BillettQuery {
     pub async fn insert_billet(
         &self,
         model::BillettForm {
-            fra_iata_code,
-            til_iata_code,
+            reise_id,
+            person_id,
+            bekreftet: _,
             status,
             billett_type,
         }: &model::BillettForm,
-        bestillings_id: i32,
-    ) -> Result<sqlx::postgres::PgRow, sqlx::Error> {
-        sqlx::query(
-            "insert into billett (bestillings_id, fra_iata_code, til_iata_code, status, billett_type)
+    ) -> Result<model::Billett, sqlx::Error> {
+        sqlx::query_as(
+            "insert into billett (reise_id, person_id, status, billett_type)
             values ($1, $2, $3, $4, $5)
-            returning bestillings_id"
-        ).bind(bestillings_id)
-            .bind(fra_iata_code)
-            .bind(til_iata_code)
-            .bind(status)
-            .bind(billett_type)
-            .fetch_one(&*self.pool)
-            .await
+            returning bestillings_id
+            returning *",
+        )
+        .bind(reise_id)
+        .bind(person_id)
+        .bind(status)
+        .bind(billett_type)
+        .fetch_one(&*self.pool)
+        .await
     }
 }

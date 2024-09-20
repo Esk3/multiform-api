@@ -53,11 +53,11 @@ impl PersonQuery {
     pub async fn insert_person(
         &self,
         person: &model::PersonForm,
-    ) -> Result<model::PersonId, sqlx::Error> {
+    ) -> Result<model::Person, sqlx::Error> {
         sqlx::query_as(
             "insert into person (fornavn, etternavn, adresse, postnummer, epost, telefonnummer)
             values ($1, $2, $3, $4, $5, $6)
-            returning id",
+            returning *",
         )
         .bind(&person.fornavn)
         .bind(&person.etternavn)
@@ -65,21 +65,6 @@ impl PersonQuery {
         .bind(person.postnummer)
         .bind(&person.epost)
         .bind(&person.telefonnummer)
-        .fetch_one(&*self.pool)
-        .await
-    }
-    pub async fn insert_bestilling_person(
-        &self,
-        bestilling_id: i32,
-        person_id: i32,
-    ) -> Result<model::BestillingPerson, sqlx::Error> {
-        sqlx::query_as(
-            "insert into bestilling_person (bestilling_id, person_id)
-            values ($1, $2)
-            returning *",
-        )
-        .bind(bestilling_id)
-        .bind(person_id)
         .fetch_one(&*self.pool)
         .await
     }

@@ -32,7 +32,7 @@ create view totalt_ledige_seter as
   from ledige_seter;
 
 create view bekreftet_billetter as
-  select *
+  select billett_id, reise_id, person_id, status, billett_type, timestamp
   from billetter
   where bekreftet = true;
 

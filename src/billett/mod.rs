@@ -6,7 +6,7 @@ use poem_openapi::{
     ApiResponse, OpenApi,
 };
 
-use crate::{ApiTags, BestillingsId};
+use crate::ApiTags;
 
 pub mod model;
 mod query;
@@ -49,22 +49,6 @@ impl BilletApi {
 
 #[OpenApi(prefix_path = "/v1/billett", tag = "ApiTags::Billett")]
 impl BilletApi {
-    #[oai(path = "/", method = "get")]
-    async fn index(
-        &self,
-        #[oai(name = "bestilling_id")] bestilling_id: Cookie<Option<i32>>,
-    ) -> IndexResponse {
-        let Ok(bestilling_id) = BestillingsId::new(*bestilling_id)
-            .get_or_create(self.pool.clone())
-            .await
-        else {
-            return IndexResponse::Error;
-        };
-        IndexResponse::Ok(
-            PlainText("index billett".to_string()),
-            format!("bestilling_id={bestilling_id}"),
-        )
-    }
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
         match query::BillettQuery::new(self.pool.clone())
@@ -80,22 +64,14 @@ impl BilletApi {
         }
     }
     #[oai(path = "/", method = "post")]
-    async fn post_billett(
-        &self,
-        billett: Json<model::BillettForm>,
-        #[oai(name = "bestilling_id")] id: Cookie<Option<i32>>,
-    ) -> PostBilletResponse {
-        let id = BestillingsId::new(*id)
-            .get_or_create(self.pool.clone())
-            .await
-            .unwrap();
+    async fn create_billett(&self, billett: Json<model::BillettForm>) -> PostBilletResponse {
         match query::BillettQuery::new(self.pool.clone())
-            .insert_billet(&billett, id)
+            .insert_billet(&billett)
             .await
         {
             Ok(row) => {
                 dbg!(row);
-                PostBilletResponse::Ok(format!("bestilling_id{id}"))
+                PostBilletResponse::Ok(format!("bestilling_id=todo"))
             }
             Err(e) => {
                 dbg!(e);
