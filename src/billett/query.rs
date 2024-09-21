@@ -13,8 +13,8 @@ impl BillettQuery {
     pub async fn get_billett_by_id(&self, id: i32) -> Result<Option<Billett>, sqlx::Error> {
         sqlx::query_as(
             "select billett_id, reise_id, person_id, bekreftet,
-                status::text, billett_type::text, timestamp::text
-                from billett
+                status, billett_type, timestamp::text
+                from billetter
                 where billett_id = $1",
         )
         .bind(id)
@@ -65,7 +65,7 @@ impl BillettQuery {
         sqlx::query_as(
             "update billetter set reise_id = $1
             where billett_id = $2
-            retruning *",
+            returning billett_id, reise_id, person_id, bekreftet, status, billett_type, timestamp::text",
         )
         .bind(reise_id)
         .bind(billett_id)
