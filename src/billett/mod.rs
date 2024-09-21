@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use poem_openapi::{
     param::{Cookie, Path},
-    payload::{Json, PlainText},
+    payload::Json,
     ApiResponse, OpenApi,
 };
 
@@ -10,14 +10,6 @@ use crate::ApiTags;
 
 pub mod model;
 mod query;
-
-#[derive(ApiResponse)]
-enum IndexResponse {
-    #[oai(status = 200)]
-    Ok(PlainText<String>, #[oai(header = "Set-Cookie")] String),
-    #[oai(status = 500)]
-    Error,
-}
 
 #[derive(Debug, ApiResponse)]
 enum GetBillettResponse {
@@ -53,6 +45,16 @@ enum SetPersonIdResponse {
     Err,
 }
 
+#[derive(Debug, ApiResponse)]
+enum BekreftBillettResponse {
+    #[oai(status = 200)]
+    Ok(Json<model::BekreftetBillett>),
+    #[oai(status=404)]
+    BillettNotFound,
+    #[oai(status = 500)]
+    Err,
+}
+
 pub struct BilletApi {
     pool: Arc<sqlx::Pool<sqlx::Postgres>>,
 }
@@ -65,13 +67,6 @@ impl BilletApi {
 
 #[OpenApi(prefix_path = "/v1/billett", tag = "ApiTags::Billett")]
 impl BilletApi {
-    #[oai(path = "/", method = "get")]
-    async fn cookie_test(&self) -> IndexResponse {
-        IndexResponse::Ok(
-            PlainText("hello wrold".to_string()),
-            "key=value; SameSite=Lax".to_string(),
-        )
-    }
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
         match query::BillettQuery::new(self.pool.clone())
@@ -136,6 +131,20 @@ impl BilletApi {
             Err(e) => {
                 dbg!(e);
                 SetPersonIdResponse::Err
+            }
+        }
+    }
+    #[oai(path = "/bekreft", method = "put")]
+    async fn bekreft_billett(&self, Cookie(billett_id): Cookie<i32>) -> BekreftBillettResponse {
+        match query::BillettQuery::new(self.pool.clone())
+            .get_bekreftet_billett_by_id(billett_id)
+            .await
+        {
+            Ok(Some(billett)) => BekreftBillettResponse::Ok(Json(billett)),
+            Ok(None) => BekreftBillettResponse::Err,
+            Err(e) => {
+                dbg!(e);
+                BekreftBillettResponse::Err
             },
         }
     }
