@@ -47,7 +47,8 @@ impl FlyApi {
 impl FlyApi {
     #[oai(path = "/", method = "get")]
     async fn fly_liste(&self) -> FlyListResponse {
-        match FlyQuery::new(self.pool.clone()).get_fly().await {
+        let mut tx = self.pool.begin().await.unwrap();
+        match FlyQuery::new(&mut tx).get_fly().await {
             Ok(fly) => FlyListResponse::Ok(Json(fly)),
             Err(e) => {
                 dbg!(e);
@@ -58,7 +59,8 @@ impl FlyApi {
 
     #[oai(path = "/:id", method = "get")]
     async fn fly_by_id(&self, Path(id): Path<i32>) -> FlyResponse {
-        match FlyQuery::new(self.pool.clone()).get_fly_by_id(id).await {
+        let mut tx = self.pool.begin().await.unwrap();
+        match FlyQuery::new(&mut tx).get_fly_by_id(id).await {
             Ok(Some(fly)) => FlyResponse::Ok(Json(fly)),
             Ok(None) => FlyResponse::NotFound,
             Err(e) => {
@@ -70,12 +72,16 @@ impl FlyApi {
 
     #[oai(path = "/", method = "post")]
     async fn create_fly(&self, Json(fly_form): Json<model::FlyForm>) -> CreateFlyResponse {
-        match FlyQuery::new(self.pool.clone()).create_fly(fly_form).await {
-            Ok(fly) => CreateFlyResponse::Ok(Json(fly)),
+        let mut tx = self.pool.begin().await.unwrap();
+        match FlyQuery::new(&mut tx).create_fly(fly_form).await {
+            Ok(fly) => {
+                tx.commit().await.unwrap();
+                CreateFlyResponse::Ok(Json(fly))
+            }
             Err(e) => {
                 dbg!(e);
                 CreateFlyResponse::Err
-            },
+            }
         }
     }
 }

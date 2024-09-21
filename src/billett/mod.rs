@@ -69,7 +69,8 @@ impl BilletApi {
 impl BilletApi {
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
-        match query::BillettQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::BillettQuery::new(&mut tx)
             .get_billett_by_id(*id)
             .await
         {
@@ -83,12 +84,14 @@ impl BilletApi {
     }
     #[oai(path = "/", method = "post")]
     async fn create_billett(&self, billett: Json<model::BillettForm>) -> PostBilletResponse {
-        match query::BillettQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::BillettQuery::new(&mut tx)
             .insert_billet(&billett)
             .await
         {
             Ok(billett) => {
                 let billett_id = billett.billett_id;
+                tx.commit().await.unwrap();
                 PostBilletResponse::Ok(
                     Json(billett),
                     format!("billett_id={billett_id}; SameSite=Lax"),
@@ -106,11 +109,15 @@ impl BilletApi {
         Json(reise_id): Json<i32>,
         Cookie(billett_id): Cookie<i32>,
     ) -> SetReiseIdResponse {
-        match query::BillettQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::BillettQuery::new(&mut tx)
             .set_reise(billett_id, reise_id)
             .await
         {
-            Ok(billett) => SetReiseIdResponse::Ok(Json(billett)),
+            Ok(billett) => {
+                tx.commit().await.unwrap();
+                SetReiseIdResponse::Ok(Json(billett))
+            },
             Err(e) => {
                 dbg!(e);
                 SetReiseIdResponse::Err
@@ -123,11 +130,15 @@ impl BilletApi {
         Json(person_id): Json<i32>,
         Cookie(billett_id): Cookie<i32>,
     ) -> SetPersonIdResponse {
-        match query::BillettQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::BillettQuery::new(&mut tx)
             .set_person(billett_id, person_id)
             .await
         {
-            Ok(billett) => SetPersonIdResponse::Ok(Json(billett)),
+            Ok(billett) => {
+                tx.commit().await.unwrap();
+                SetPersonIdResponse::Ok(Json(billett))
+            },
             Err(e) => {
                 dbg!(e);
                 SetPersonIdResponse::Err
@@ -136,11 +147,15 @@ impl BilletApi {
     }
     #[oai(path = "/bekreft", method = "put")]
     async fn bekreft_billett(&self, Cookie(billett_id): Cookie<i32>) -> BekreftBillettResponse {
-        match query::BillettQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::BillettQuery::new(&mut tx)
             .get_bekreftet_billett_by_id(billett_id)
             .await
         {
-            Ok(Some(billett)) => BekreftBillettResponse::Ok(Json(billett)),
+            Ok(Some(billett)) => {
+                tx.commit().await.unwrap();
+                BekreftBillettResponse::Ok(Json(billett))
+            },
             Ok(None) => BekreftBillettResponse::Err,
             Err(e) => {
                 dbg!(e);

@@ -1,16 +1,14 @@
-use std::sync::Arc;
-
 use super::model::{self, BekreftetBillett, Billett};
 
-pub struct BillettQuery {
-    pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+pub struct BillettQuery<'a, 'b> {
+    tx: &'a mut sqlx::Transaction<'b, sqlx::Postgres>,
 }
-impl BillettQuery {
-    pub fn new(pool: Arc<sqlx::Pool<sqlx::Postgres>>) -> Self {
-        Self { pool }
+impl<'a, 'b> BillettQuery<'a, 'b> {
+    pub fn new(tx: &'a mut sqlx::Transaction<'b, sqlx::Postgres>) -> Self {
+        Self { tx }
     }
 
-    pub async fn get_billett_by_id(&self, id: i32) -> Result<Option<Billett>, sqlx::Error> {
+    pub async fn get_billett_by_id(&mut self, id: i32) -> Result<Option<Billett>, sqlx::Error> {
         sqlx::query_as(
             "select billett_id, reise_id, person_id, bekreftet,
                 status, billett_type, timestamp::text
@@ -18,12 +16,12 @@ impl BillettQuery {
                 where billett_id = $1",
         )
         .bind(id)
-        .fetch_optional(&*self.pool)
+        .fetch_optional(&mut **self.tx)
         .await
     }
 
     pub async fn get_bekreftet_billett_by_id(
-        &self,
+        &mut self,
         id: i32,
     ) -> Result<Option<BekreftetBillett>, sqlx::Error> {
         sqlx::query_as(
@@ -33,12 +31,12 @@ impl BillettQuery {
             where billett_id = $1",
         )
         .bind(id)
-        .fetch_optional(&*self.pool)
+        .fetch_optional(&mut **self.tx)
         .await
     }
 
     pub async fn insert_billet(
-        &self,
+        &mut self,
         model::BillettForm {
             reise_id,
             person_id,
@@ -57,11 +55,15 @@ impl BillettQuery {
         .bind(bekreftet)
         .bind(status)
         .bind(billett_type)
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut **self.tx)
         .await
     }
 
-    pub async fn set_reise(&self, billett_id: i32, reise_id: i32) -> Result<Billett, sqlx::Error> {
+    pub async fn set_reise(
+        &mut self,
+        billett_id: i32,
+        reise_id: i32,
+    ) -> Result<Billett, sqlx::Error> {
         sqlx::query_as(
             "update billetter set reise_id = $1
             where billett_id = $2
@@ -69,12 +71,12 @@ impl BillettQuery {
         )
         .bind(reise_id)
         .bind(billett_id)
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut **self.tx)
         .await
     }
 
     pub async fn set_person(
-        &self,
+        &mut self,
         billett_id: i32,
         person_id: i32,
     ) -> Result<Billett, sqlx::Error> {

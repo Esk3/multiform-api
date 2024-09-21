@@ -28,11 +28,15 @@ impl PersonApi {
 impl PersonApi {
     #[oai(path = "/", method = "post")]
     async fn create_person(&self, Json(person): Json<model::PersonForm>) -> CreatePersonResponse {
-        match query::PersonQuery::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::PersonQuery::new(&mut tx)
             .insert_person(&person)
             .await
         {
-            Ok(person) => CreatePersonResponse::Ok(Json(person)),
+            Ok(person) => {
+                tx.commit().await.unwrap();
+                CreatePersonResponse::Ok(Json(person))
+            },
             Err(e) => {
                 dbg!(e);
                 CreatePersonResponse::Err

@@ -1,12 +1,12 @@
 use super::model::{Lufthavn, SearchQuery};
 
 pub struct Query<'a, 'b> {
-    pool: &'a mut sqlx::Transaction<'b, sqlx::Postgres>,
+    tx: &'a mut sqlx::Transaction<'b, sqlx::Postgres>,
 }
 
 impl<'a, 'b> Query<'a, 'b> {
-    pub fn new(pool: &'a mut sqlx::Transaction<'b, sqlx::Postgres>) -> Self {
-        Self { pool }
+    pub fn new(tx: &'a mut sqlx::Transaction<'b, sqlx::Postgres>) -> Self {
+        Self { tx }
     }
     pub async fn get_by_iata_code(
         &mut self,
@@ -18,7 +18,7 @@ impl<'a, 'b> Query<'a, 'b> {
             where iata_code = upper($1)",
         )
         .bind(iata_code)
-        .fetch_optional(&mut **self.pool)
+        .fetch_optional(&mut **self.tx)
         .await
     }
     pub async fn search(
@@ -61,7 +61,7 @@ impl<'a, 'b> Query<'a, 'b> {
         .bind(search_query.local_code)
         .bind(search_query.coordinates)
         .bind(search_query.limit.unwrap_or(10).min(100))
-        .fetch_all(&mut **self.pool)
+        .fetch_all(&mut **self.tx)
         .await
     }
 }
