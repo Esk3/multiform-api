@@ -1,11 +1,24 @@
-use poem_openapi::Object;
-use sqlx::prelude::FromRow;
+use poem_openapi::{Enum, Object};
+use sqlx::prelude::{FromRow, Type};
+
+#[derive(Debug, Enum, Type)]
+#[sqlx(type_name = "airport_type", rename_all = "snake_case")]
+#[oai(rename_all = "snake_case")]
+pub enum AirportType {
+    SeaplaneBase,
+    Heliport,
+    SmallAirport,
+    MediumAirport,
+    LargeAirport,
+    Closed,
+    Balloonport,
+}
 
 #[derive(Debug, FromRow, Object)]
 pub struct Lufthavn {
     /// https://en.wikipedia.org/wiki/International_Air_Transport_Association
     iata_code: String,
-    airport_type: String,
+    airport_type: AirportType,
     name: String,
     elevation_ft: Option<f32>,
     continent: String,
@@ -21,7 +34,7 @@ pub struct Lufthavn {
 pub struct SearchQuery {
     /// https://en.wikipedia.org/wiki/International_Air_Transport_Association
     pub iata_code: Option<String>,
-    pub airport_type: Option<String>,
+    pub airport_type: Option<AirportType>,
     pub name: Option<String>,
     pub name_exact: bool,
     pub elevation_ft: Option<f32>,
@@ -36,5 +49,5 @@ pub struct SearchQuery {
     pub gps_code: Option<String>,
     pub local_code: Option<String>,
     pub coordinates: Option<String>,
-    pub limit: Option<i32>
+    pub limit: Option<i32>,
 }

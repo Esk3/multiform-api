@@ -1,7 +1,9 @@
+create type airport_type as enum('seaplane_base', 'heliport', 'small_airport', 'medium_airport', 'large_airport', 'closed', 'balloonport');
+
 create table lufthavner (
   -- https://en.wikipedia.org/wiki/International_Air_Transport_Association
   iata_code varchar(4) primary key,
-  airport_type text not null,
+  airport_type airport_type not null,
   name text not null,
   elevation_ft real,
   continent varchar(6) not null,
@@ -16,7 +18,7 @@ create table lufthavner (
 
 create table lufthavner_csv (
   ident varchar(8) primary key,
-  "type" text not null,
+  "type" airport_type not null,
   name text not null,
   elevation_ft real,
   continent varchar(6) not null,

@@ -20,6 +20,7 @@ enum LufthavnFraIataCodeResponse {
     #[oai(status = 500)]
     Err,
 }
+
 #[derive(ApiResponse)]
 enum SearchResponse {
     #[oai(status = 200)]
@@ -66,10 +67,7 @@ impl LufthavnApi {
         /// https://en.wikipedia.org/wiki/International_Air_Transport_Association
         #[oai(validator(min_length = 3, max_length = 4))]
         Query(iata_code): Query<Option<String>>,
-        // Find some way to limit accepted strings
-        /// Option<"seaplane_base" | "heliport" | "small_airport"  | "medium_airport" |
-        /// "large_airport">
-        Query(airport_type): Query<Option<String>>,
+        Query(airport_type): Query<Option<model::AirportType>>,
         Query(name): Query<Option<String>>,
         Query(name_exact): Query<Option<bool>>,
         Query(elevation_ft): Query<Option<f32>>,

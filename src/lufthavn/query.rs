@@ -29,7 +29,7 @@ impl Query {
             select *
             from lufthavner
             where ( iata_code = upper($1) or $1 is null )
-            and ( airport_type = lower($2) or $2 is null )
+            and ( airport_type = $2 or $2 is null )
             and ( case when $3 then name = $4 else lower(name) like '%' || lower($4) || '%' end or $4 is null )
             and ( elevation_ft = $5 or $5 is null )
             and ( elevation_ft < $6 or $6 is null )
