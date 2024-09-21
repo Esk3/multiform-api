@@ -1,17 +1,15 @@
-use std::sync::Arc;
-
 use super::model::{Lufthavn, SearchQuery};
 
-pub struct Query {
-    pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+pub struct Query<'a, 'b> {
+    pool: &'a mut sqlx::Transaction<'b, sqlx::Postgres>,
 }
 
-impl Query {
-    pub fn new(pool: Arc<sqlx::Pool<sqlx::Postgres>>) -> Self {
+impl<'a, 'b> Query<'a, 'b> {
+    pub fn new(pool: &'a mut sqlx::Transaction<'b, sqlx::Postgres>) -> Self {
         Self { pool }
     }
     pub async fn get_by_iata_code(
-        &self,
+        &mut self,
         iata_code: String,
     ) -> Result<Option<Lufthavn>, sqlx::Error> {
         sqlx::query_as(
@@ -20,10 +18,13 @@ impl Query {
             where iata_code = upper($1)",
         )
         .bind(iata_code)
-        .fetch_optional(&*self.pool)
+        .fetch_optional(&mut **self.pool)
         .await
     }
-    pub async fn search(&self, search_query: SearchQuery) -> Result<Vec<Lufthavn>, sqlx::Error> {
+    pub async fn search(
+        &mut self,
+        search_query: SearchQuery,
+    ) -> Result<Vec<Lufthavn>, sqlx::Error> {
         sqlx::query_as(
             "
             select *
@@ -60,7 +61,7 @@ impl Query {
         .bind(search_query.local_code)
         .bind(search_query.coordinates)
         .bind(search_query.limit.unwrap_or(10).min(100))
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut **self.pool)
         .await
     }
 }

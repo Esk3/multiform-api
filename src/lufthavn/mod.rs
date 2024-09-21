@@ -1,4 +1,5 @@
 use crate::ApiTags;
+
 use model::SearchQuery;
 use poem_openapi::{
     param::{Path, Query},
@@ -48,10 +49,8 @@ impl LufthavnApi {
         #[oai(validator(min_length = 3, max_length = 4))]
         Path(iata_code): Path<String>,
     ) -> LufthavnFraIataCodeResponse {
-        match query::Query::new(self.pool.clone())
-            .get_by_iata_code(iata_code)
-            .await
-        {
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::Query::new(&mut tx).get_by_iata_code(iata_code).await {
             Ok(Some(lufthavn)) => LufthavnFraIataCodeResponse::Ok(Json(lufthavn)),
             Ok(None) => LufthavnFraIataCodeResponse::NotFound,
             Err(e) => {
@@ -88,7 +87,8 @@ impl LufthavnApi {
         Query(coordinates): Query<Option<String>>,
         Query(limit): Query<Option<i32>>,
     ) -> SearchResponse {
-        match query::Query::new(self.pool.clone())
+        let mut tx = self.pool.begin().await.unwrap();
+        match query::Query::new(&mut tx)
             .search(SearchQuery {
                 iata_code,
                 airport_type,
