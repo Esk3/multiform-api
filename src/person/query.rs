@@ -55,7 +55,7 @@ impl PersonQuery {
         person: &model::PersonForm,
     ) -> Result<model::Person, sqlx::Error> {
         sqlx::query_as(
-            "insert into person (fornavn, etternavn, adresse, postnummer, epost, telefonnummer)
+            "insert into personer (fornavn, etternavn, adresse, postnummer, epost, telefonnummer)
             values ($1, $2, $3, $4, $5, $6)
             returning *",
         )

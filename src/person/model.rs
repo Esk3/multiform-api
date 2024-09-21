@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, sqlx::FromRow, Object)]
 pub struct Person {
+    #[sqlx(rename = "person_id")]
     pub id: i32,
     pub fornavn: String,
     pub etternavn: String,
