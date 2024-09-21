@@ -32,9 +32,25 @@ enum GetBillettResponse {
 #[derive(Debug, ApiResponse)]
 enum PostBilletResponse {
     #[oai(status = 201)]
-    Ok(#[oai(header = "Set-Cookie")] String),
+    Ok(Json<model::Billett>, #[oai(header = "Set-Cookie")] String),
     #[oai(status = 500)]
     InternalError,
+}
+
+#[derive(Debug, ApiResponse)]
+enum SetReiseIdResponse {
+    #[oai(status = 200)]
+    Ok(Json<model::Billett>),
+    #[oai(status = 500)]
+    Err,
+}
+
+#[derive(Debug, ApiResponse)]
+enum SetPersonIdResponse {
+    #[oai(status = 200)]
+    Ok(Json<model::Billett>),
+    #[oai(status = 500)]
+    Err,
 }
 
 pub struct BilletApi {
@@ -49,6 +65,13 @@ impl BilletApi {
 
 #[OpenApi(prefix_path = "/v1/billett", tag = "ApiTags::Billett")]
 impl BilletApi {
+    #[oai(path = "/", method = "get")]
+    async fn cookie_test(&self) -> IndexResponse {
+        IndexResponse::Ok(
+            PlainText("hello wrold".to_string()),
+            "key=value; SameSite=Lax".to_string(),
+        )
+    }
     #[oai(path = "/:id", method = "get")]
     async fn get_billett(&self, id: Path<i32>) -> GetBillettResponse {
         match query::BillettQuery::new(self.pool.clone())
@@ -69,14 +92,51 @@ impl BilletApi {
             .insert_billet(&billett)
             .await
         {
-            Ok(row) => {
-                dbg!(row);
-                PostBilletResponse::Ok(format!("bestilling_id=todo"))
+            Ok(billett) => {
+                let billett_id = billett.billett_id;
+                PostBilletResponse::Ok(
+                    Json(billett),
+                    format!("billett_id={billett_id}; SameSite=Lax"),
+                )
             }
             Err(e) => {
                 dbg!(e);
                 PostBilletResponse::InternalError
             }
+        }
+    }
+    #[oai(path = "/reise", method = "put")]
+    async fn set_reise_id(
+        &self,
+        Json(reise_id): Json<i32>,
+        Cookie(billett_id): Cookie<i32>,
+    ) -> SetReiseIdResponse {
+        match query::BillettQuery::new(self.pool.clone())
+            .set_reise(billett_id, reise_id)
+            .await
+        {
+            Ok(billett) => SetReiseIdResponse::Ok(Json(billett)),
+            Err(e) => {
+                dbg!(e);
+                SetReiseIdResponse::Err
+            }
+        }
+    }
+    #[oai(path = "/person", method = "put")]
+    async fn set_person_id(
+        &self,
+        Json(person_id): Json<i32>,
+        Cookie(billett_id): Cookie<i32>,
+    ) -> SetPersonIdResponse {
+        match query::BillettQuery::new(self.pool.clone())
+            .set_person(billett_id, person_id)
+            .await
+        {
+            Ok(billett) => SetPersonIdResponse::Ok(Json(billett)),
+            Err(e) => {
+                dbg!(e);
+                SetPersonIdResponse::Err
+            },
         }
     }
 }

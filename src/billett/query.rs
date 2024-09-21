@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::model::{self, Billett};
+use super::model::{self, BekreftetBillett, Billett};
 
 pub struct BillettQuery {
     pool: Arc<sqlx::Pool<sqlx::Postgres>>,
@@ -12,10 +12,24 @@ impl BillettQuery {
 
     pub async fn get_billett_by_id(&self, id: i32) -> Result<Option<Billett>, sqlx::Error> {
         sqlx::query_as(
-            "select bestillings_id, fra_iata_code, til_iata_code,
+            "select billett_id, reise_id, person_id, bekreftet,
                 status::text, billett_type::text, timestamp::text
                 from billett
-                where bestillings_id = $1",
+                where billett_id = $1",
+        )
+        .bind(id)
+        .fetch_optional(&*self.pool)
+        .await
+    }
+    pub async fn get_bekreftet_billett_by_id(
+        &self,
+        id: i32,
+    ) -> Result<Option<BekreftetBillett>, sqlx::Error> {
+        sqlx::query_as(
+            "select billett_id, reise_id, person_id,
+            status::text, billett_type::text, timestamp::text
+            from bekreftet_billetter
+            where billett_id = $1",
         )
         .bind(id)
         .fetch_optional(&*self.pool)
@@ -43,5 +57,23 @@ impl BillettQuery {
         .bind(billett_type)
         .fetch_one(&*self.pool)
         .await
+    }
+    pub async fn set_reise(&self, billett_id: i32, reise_id: i32) -> Result<Billett, sqlx::Error> {
+        sqlx::query_as(
+            "update billett set reise_id = $1
+            where billett_id = $2
+            retruning *",
+        )
+        .bind(reise_id)
+        .bind(billett_id)
+        .fetch_one(&*self.pool)
+        .await
+    }
+    pub async fn set_person(
+        &self,
+        billett_id: i32,
+        person_id: i32,
+    ) -> Result<Billett, sqlx::Error> {
+        todo!()
     }
 }

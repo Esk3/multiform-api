@@ -64,7 +64,7 @@ impl PersonQuery {
         .bind(&person.adresse)
         .bind(person.postnummer)
         .bind(&person.epost)
-        .bind(&person.telefonnummer)
+        .bind(person.telefonnummer)
         .fetch_one(&*self.pool)
         .await
     }
