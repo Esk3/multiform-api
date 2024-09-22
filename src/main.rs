@@ -2,11 +2,7 @@ use poem::{listener::TcpListener, Route};
 use poem_openapi::Tags;
 use std::sync::Arc;
 
-mod billett;
-mod fly;
-mod lufthavn;
-mod person;
-mod reise;
+mod api;
 
 #[tokio::main]
 async fn main() {
@@ -18,10 +14,10 @@ async fn main() {
 
     let api_service = poem_openapi::OpenApiService::new(
         (
-            billett::BilletApi::new(pool.clone()),
-            person::PersonApi::new(pool.clone()),
-            lufthavn::LufthavnApi::new(pool.clone()),
-            fly::FlyApi::new(pool.clone()),
+            api::billett::BilletApi::new(pool.clone()),
+            api::person::PersonApi::new(pool.clone()),
+            api::lufthavn::LufthavnApi::new(pool.clone()),
+            api::fly::FlyApi::new(pool.clone()),
         ),
         "Fly Api",
         "1.0",
