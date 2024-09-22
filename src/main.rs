@@ -3,6 +3,7 @@ use poem_openapi::Tags;
 use std::sync::Arc;
 
 mod api;
+mod www;
 
 #[tokio::main]
 async fn main() {
@@ -22,12 +23,13 @@ async fn main() {
         "Fly Api",
         "1.0",
     )
-    .server("http://localhost:3000");
+    .server("http://localhost:3000/api");
     let ui = api_service.swagger_ui();
 
     println!("server listing on: localhost:3000");
+    let router = Route::new().nest("/api", api_service).nest("/docs", ui).nest("/", www::web_router());
     poem::Server::new(TcpListener::bind("127.0.0.1:3000"))
-        .run(Route::new().nest("/", api_service).nest("/docs", ui))
+        .run(router)
         .await
         .unwrap();
 }

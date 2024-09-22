@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 dotenvy = "0.15.7"
+maud = "0.26.0"
 poem = "3.1.0"
 poem-openapi = { version = "5.1.1", features = ["swagger-ui"] }
 serde = { version = "1.0.210", features = ["derive"] }
