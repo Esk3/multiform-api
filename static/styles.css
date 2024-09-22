@@ -1,0 +1,21 @@
+.v {
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+.v>div:has(input:checked) {
+	order: -1;
+	animation-name: glow;
+	animation-duration: 2s;
+	padding-bottom: 1em;
+}
+
+@keyframes glow {
+	from {
+		background-color: blue;
+	}
+
+	to {
+		background-color: transparent;
+	}
+}
