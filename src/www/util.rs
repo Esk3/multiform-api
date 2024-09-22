@@ -1,3 +1,5 @@
+use maud::Render;
+
 pub struct MaudTemplate {
     title: String,
     body: maud::Markup,
@@ -6,6 +8,9 @@ pub struct MaudTemplate {
 impl MaudTemplate {
     pub fn new(body: maud::Markup, title: impl ToString) -> Self {
         Self { title: title.to_string(), body }
+    }
+    pub fn into_poem_html(self) -> poem::web::Html<maud::Markup> {
+        poem::web::Html(self.render())
     }
     fn head(&self) -> maud::Markup {
         maud::html! {
@@ -52,5 +57,21 @@ impl maud::Render for MaudTemplate {
                 }
             }
         }
+    }
+}
+
+pub trait WithTemplate {
+    fn with_template(self, title: impl ToString) -> MaudTemplate;
+}
+
+impl WithTemplate for maud::Markup {
+    fn with_template(self, title: impl ToString) -> MaudTemplate {
+        MaudTemplate { title: title.to_string(), body: self }
+    }
+}
+
+impl From<MaudTemplate> for poem::web::Html<maud::Markup> {
+    fn from(value: MaudTemplate) -> Self {
+        value.into_poem_html()
     }
 }
