@@ -1,3 +1,4 @@
+create type continent as enum('NA', 'AF', 'EU', 'AN', 'SA', 'AS', 'OC');
 create type airport_type as enum('seaplane_base', 'heliport', 'small_airport', 'medium_airport', 'large_airport', 'closed', 'balloonport');
 
 create table lufthavner (
@@ -6,7 +7,7 @@ create table lufthavner (
   airport_type airport_type not null,
   name text not null,
   elevation_ft real,
-  continent varchar(6) not null,
+  continent continent not null,
   -- https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
   iso_country varchar(2) not null,
   iso_region varchar(7) not null,
@@ -21,7 +22,7 @@ create table lufthavner_csv (
   "type" airport_type not null,
   name text not null,
   elevation_ft real,
-  continent varchar(6) not null,
+  continent continent not null,
   iso_country varchar(2) not null,
   iso_region varchar(7) not null,
   municipality text,

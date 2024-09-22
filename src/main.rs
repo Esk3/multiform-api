@@ -16,7 +16,6 @@ async fn main() {
     let pool = sqlx::PgPool::connect(&database_url).await.unwrap();
     let pool = Arc::new(pool);
 
-    println!("server listing on: localhost:3000");
     let api_service = poem_openapi::OpenApiService::new(
         (
             billett::BilletApi::new(pool.clone()),
@@ -29,6 +28,8 @@ async fn main() {
     )
     .server("http://localhost:3000");
     let ui = api_service.swagger_ui();
+
+    println!("server listing on: localhost:3000");
     poem::Server::new(TcpListener::bind("127.0.0.1:3000"))
         .run(Route::new().nest("/", api_service).nest("/docs", ui))
         .await

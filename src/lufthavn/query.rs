@@ -35,7 +35,7 @@ impl<'a, 'b> Query<'a, 'b> {
             and ( elevation_ft = $5 or $5 is null )
             and ( elevation_ft < $6 or $6 is null )
             and ( elevation_ft > $7 or $7 is null )
-            and ( continent = upper($8) or $8 is null )
+            and ( continent = $8 or $8 is null )
             and ( iso_country = upper($9) or $9 is null )
             and ( iso_region = upper($10) or $10 is null )
             and ( case when $11 then municipality = $12 else lower(municipality) like '%' || lower($12) || '%' end or $12 is null )

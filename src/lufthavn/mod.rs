@@ -72,8 +72,7 @@ impl LufthavnApi {
         Query(elevation_ft): Query<Option<f32>>,
         Query(elevation_ft_greater_then): Query<Option<f32>>,
         Query(elevation_ft_less_then): Query<Option<f32>>,
-        /// "NA" | "AF" | "EU" | "AN" | "SA" | "AS" | "OC"
-        Query(continent): Query<Option<String>>,
+        Query(continent): Query<Option<model::Continent>>,
         /// eg "NO" | "DK" | "UK" | ...
         /// https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
         #[oai(validator(min_length = 2, max_length = 2))]
