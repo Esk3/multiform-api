@@ -6,8 +6,9 @@ use crate::www::util::WithTemplate;
 pub fn billett() -> poem::web::Html<maud::Markup> {
     maud::html! {
         h1 { "Billett" }
-        button #my-button {
-            "here is my button"
+        form .search-form {
+            input type="text" name="search";
+            input type="submit" value="submit search";
         }
         form {
             "Kjøp billett"
