@@ -1,9 +1,9 @@
-.v {
+.lufthavn-search>.options {
 	display: flex;
 	flex-flow: column nowrap;
 }
 
-.v>div:has(input:checked) {
+.lufthavn-search>.options>div:has(input:checked) {
 	order: -1;
 	animation-name: glow;
 	animation-duration: 2s;

@@ -1,50 +1,57 @@
-const form = document.querySelector(".search-form");
+const wrapperName = ".lufthavn-search";
 
-const wrapperName = ".v";
+const searchWrappers = document.querySelectorAll(wrapperName);
 
-function getListItems() {
-	return document.querySelectorAll(`${wrapperName}>div:has(input:not(:checked))`)
+const limit = 5;
+
+function getSearchItems(wrapper) {
+	return wrapper.querySelectorAll(`div>div:has(input:not(:checked))`)
 }
 
-let id = "abc";
-
-function createAirportElement(data) {
+function createAirportElement(data, name) {
 	const item = document.createElement("div");
+
 	const label = document.createElement("label");
-	label.for = data.iata_code;
+	label.setAttribute("for", data.iata_code);
+	console.log(data.iata_code);
 	label.textContent = data.name;
+
 	const input = document.createElement("input");
 	input.type = "radio"
-	input.name = "fra";
+	input.name = name;
+	input.value = data.iata_code;
 	input.id = data.iata_code;
 	item.append(label, input);
 	return item;
 }
 
-form.addEventListener("submit", async e => {
+searchWrappers.forEach(searchWrapper => searchWrapper.addEventListener("keyup", async e => {
 	e.preventDefault();
-	const value = e.target.search.value;
-	const newList = (await search(value)).map(createAirportElement);
-	console.log(newList);
-	const list = getListItems();
-	const wrapper = document.querySelector(wrapperName);
-	for (const item of list) {
-		console.log(item)
-		wrapper.removeChild(item);
-		const newItem = newList.pop()
-		if (newItem) {
+	const searchElement = searchWrapper.querySelector("input[type=\"text\"]");
+	console.log(searchElement);
+	const value = searchElement.value;
 
-			wrapper.append(newItem);
-		} else {
+	const optionsWrapper = searchWrapper.querySelector(".options");
+	const name = optionsWrapper.dataset.name;
+	const newList = (await search(value)).map(data => createAirportElement(data, name));
+	console.log(newList);
+	const list = getSearchItems(optionsWrapper);
+	console.log(list);
+	const findDuplicate = value => optionsWrapper.querySelector(`div>div>input[value="${value}"]`)
+	for (let i = 0; i < limit; i++) {
+		if (list[i]) {
+			optionsWrapper.removeChild(list[i]);
+		}
+		if (newList[i] && !findDuplicate(newList[i].querySelector("input").value)) {
+			optionsWrapper.append(newList[i]);
 		}
 	}
 })
+);
 
 const searchURL = "/api/v1/lufthavn/search";
 async function search(byNavn) {
-	const response = await fetch(searchURL + "?limit=5&municipality=" + byNavn);
+	const response = await fetch(searchURL + "?limit=" + limit + "&municipality=" + byNavn);
 	const data = await response.json();
-	console.log(data);
 	return data;
 }
-console.log(await search("bergen"));

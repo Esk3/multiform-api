@@ -6,34 +6,23 @@ use crate::www::util::WithTemplate;
 pub fn billett() -> poem::web::Html<maud::Markup> {
     maud::html! {
         h1 { "Billett" }
-        form .search-form {
-            input type="text" name="search";
-            input type="submit" value="submit search";
-        }
         form {
-            "Kjøp billett"
-            input type="submit" value="her";
-            div .v {
-                div {
-                    label for="v1" { "v1" }
-                    input type="radio" name="fra" value="v1" id="v1";
-                }
-                div {
-                    label for="v2" { "v2" }
-                    input type="radio" name="fra" value="v2" id="v2";
-                }
-                div {
-                    label for="v3" { "v3" }
-                    input type="radio" name="fra" value="v3" id="v3";
-                }
-                div {
-                    label for="v4" { "v4" }
-                    input type="radio" name="fra" value="v4" id="v4";
-                }
-            }
+            (lufthavn_search_component("fra"))
+            hr;
+            (lufthavn_search_component("til"))
+            input type="submit" value="neste";
         }
     }
     .with_template("Billett")
     .with_script("/static/billett.js")
     .into()
+}
+
+fn lufthavn_search_component(name: impl ToString) -> maud::Markup {
+    maud::html! {
+        div .lufthavn-search {
+            input type="text";
+            div .options data-name=(name.to_string()) {}
+        }
+    }
 }
